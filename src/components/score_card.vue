@@ -1,0 +1,63 @@
+<template>
+    <v-card max-width="550">
+        <v-card-title>
+            <v-layout>
+                <span class="font-weight-black">{{score.song_name}}</span>
+                <v-chip label class="mx-2 text-button font-weight-bold" :color="difficulty_color[score.difficulty]">
+                    {{difficulty_short_name[score.difficulty]}}
+                </v-chip>
+                <v-spacer />
+                <div class="text-h5 font-weight-bold" v-if="rank">
+                    #{{rank}}
+                </div>
+            </v-layout>
+
+        </v-card-title>
+        <v-card-subtitle>
+            {{score.song_id}}
+        </v-card-subtitle>
+        <v-card-text>
+            <v-row>
+                <v-col cols="8">
+                    <div class="text-h5 font-weight-bold">
+                        {{score.score.toLocaleString('en-US')}}
+                    </div>
+                    <div class="text-subtitle-1">
+                        {{clear_type_name[score.clear_type]}} ({{clear_type_name[score.best_clear_type]}})
+                    </div>
+                    <div class="text-body-2">
+                        {{t('score.rating')}}: {{score.rating.toFixed(4)}}
+                    </div>
+                    <div class="text-body-2">
+                        {{t('score.time_played')}}:
+                        {{moment(score.time_played*1000).utc().format('YYYY-MM-DD HH:mm:ss UTC')}}
+                    </div>
+                </v-col>
+                <v-col cols="4">
+                    <div class="text-body-1">
+                        <div>
+                            PURE: {{score.perfect_count}} ({{score.shiny_perfect_count}})
+                        </div>
+                        <div>
+                            FAR: {{score.near_count}}
+                        </div>
+                        <div>
+                            LOST: {{score.miss_count}}
+                        </div>
+                    </div>
+                </v-col>
+            </v-row>
+        </v-card-text>
+    </v-card>
+</template>
+
+<script setup>
+import moment from 'moment';
+import { useI18n } from 'vue-i18n';
+import { clear_type_name, difficulty_short_name, difficulty_color } from '@/config';
+
+const { t } = useI18n()
+const props = defineProps(['score', 'rank'])
+const score = props.score
+const rank = props.rank
+</script>

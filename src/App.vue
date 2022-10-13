@@ -1,19 +1,25 @@
 <template>
   <v-app>
-    <v-main>
-      <HelloWorld/>
+    <v-main class="primary fill-height pb-5">
+      <arc_message />
+      <router-view></router-view>
     </v-main>
+    <v-footer app bottom fixed padless height="18px">
+      <div class="py-1 text-center w-100">
+        Made by Lost@2020-{{ new Date().getFullYear() }}
+      </div>
+    </v-footer>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import arc_message from '@/components/message.vue'
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    arc_message,
   },
 
   data: () => ({

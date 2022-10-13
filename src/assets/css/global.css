@@ -1,0 +1,29 @@
+html,
+body {
+    height: 100%;
+}
+
+.clear_type-0 {
+    background-color: rgb(146, 52, 81)!important;
+    border-color: rgb(146, 52, 81)!important;
+}
+.clear_type-1 {
+    background-color: rgb(205, 179, 205)!important;
+    border-color: rgb(205, 179, 205)!important;
+}
+.clear_type-2 {
+    background-color: rgb(154, 134, 154)!important;
+    border-color: rgb(154, 134, 154)!important;
+}
+.clear_type-3 {
+    background-color: rgb(127, 149, 170)!important;
+    border-color: rgb(127, 149, 170)!important;
+}
+.clear_type-4 {
+    background-color: rgb(152, 178, 167)!important;
+    border-color: rgb(152, 178, 167)!important;
+}
+.clear_type-5 {
+    background-color: rgb(200, 91, 122)!important;
+    border-color: rgb(200, 91, 122)!important;
+}
