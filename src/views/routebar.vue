@@ -74,21 +74,15 @@ const { locale, t } = useI18n()
 
 const drawer = ref(false)
 
-const static_items = [
-    {
-        icon: 'mdi-account',
-        items: [{ title: 'profile', to: '/dashboard' }],
-        title: 'user',
-        active: true,
-    }
-]
 const generate_route_list = (routes) => {
     let route_list = []
     routes.forEach((route) => {
         let item = {
             title: route.name,
-            to: route.path,
-            icon: route.meta.icon,
+            to: route.path
+        }
+        if (route.meta && route.meta.icon) {
+            item.icon = route.meta.icon
         }
         if (route.children) {
             item.items = generate_route_list(route.children)
@@ -99,7 +93,7 @@ const generate_route_list = (routes) => {
     return route_list
 }
 
-const items = static_items.concat(generate_route_list(user.accessed_routes))
+const items = generate_route_list(user.accessed_routes)
 
 const change_lang = (val) => {
     locale.value = val;

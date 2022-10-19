@@ -32,6 +32,16 @@ service.interceptors.request.use(
     },
 )
 
+const Base64 = require('js-base64').Base64
+
+service._get = (url, data, config = {}) => {
+    let new_config = {
+        params: { query: Base64.encode(JSON.stringify(data)) },
+        ...config
+    }
+    return service.get(url, new_config)
+}
+
 service.interceptors.response.use(
     response => {
         const message = messageStore()
@@ -48,24 +58,37 @@ service.interceptors.response.use(
     error => {
         let status = error.response.status;
         const message = messageStore();
-        if (status === 401) {
-            message.error(t('error.status_401'))
-            userStore().$reset()
-            return Promise.reject(error)
-        }
         if (error.response.data.code === undefined) console.log('response err:\n' + JSON.stringify(error.response));
         if (error.response) {
             const res = error.response.data
-            if (res.code !== undefined) {
+            if (res.code === -1) {
+                if (status === 401) {
+                    message.error(t('error.status_401'))
+                    userStore().$reset()
+                    return Promise.reject(error)
+                }
+                if (status === 429) {
+                    message.error(t('error.status_429'))
+                    return Promise.reject(error)
+                }
+            }
+            else if (res.code < -1) {
+                message.error(t('error.' + res.code.toString().slice(1)))
+                return Promise.reject(res)
+            }
+            else if (res.code !== undefined) {
                 message.error(res.msg)
-            } else {
+            }
+            else {
                 message.error(t('error.unknown'))
+
             }
         } else if (error.message.includes('timeout')) {
             message.error(t('error.timeout'));
         } else {
             message.error(t('error.unknown'));
         }
+
         return Promise.reject(error.response.data)
     }
 )

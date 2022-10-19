@@ -34,6 +34,8 @@ export const route = {
 export const error = {
   unknown: 'Unknow error',
   timeout: 'Timeout',
+  status_401: 'Unauthorized',
+  status_429: 'Too many requests',
   1: 'See status code',
   2: 'No data',
   3: 'No data or user',
@@ -48,6 +50,7 @@ export const error = {
   202: 'User is banned',
   203: 'Username exists',
   204: 'Email address exists',
+  205: 'Too many login attempts',
   999: 'Unknown error'
 };
 
@@ -56,9 +59,15 @@ export const user = {
   ticket: 'Memories',
   b30_ptt: 'Best 30 Potential',
   r10_ptt: 'Recent Top 10 Potential',
+  user_select_title: 'Search user',
 }
 
 export const score = {
   rating: 'Rating',
   time_played: 'Time played',
+}
+
+export const form = {
+  search: 'SEARCH',
+  change_user_select_way: 'Click to change user identify type',
 }

@@ -8,11 +8,11 @@
           </v-card-title>
           <br>
           <v-form @submit.prevent="submitForm()" v-model="valid" lazy-validation disable="logining">
-            <v-text-field outlined v-model="ruleForm.username" :rules="rules.username" :label="t('login.username')"
-              required>
+            <v-text-field outlined clearable v-model="ruleForm.username" :rules="rules.username" :label="t('login.username')"
+              required :readonly="logining">
             </v-text-field>
-            <v-text-field outlined v-model="ruleForm.password" :rules="rules.password" :label="t('login.password')"
-              type="password" required></v-text-field>
+            <v-text-field outlined clearable v-model="ruleForm.password" :rules="rules.password" :label="t('login.password')"
+              type="password" required :readonly="logining"></v-text-field>
             <br>
             <v-btn block size="large" :disabled="!valid" color="success" class="mr-4" type="submit" :loading="logining">
               {{ $t('login.login') }}
@@ -44,7 +44,7 @@ const ruleForm = reactive({
 
 const rules = reactive({
   username: [
-    v => (v && v.length <= 64) || t('login.username_required')
+    v => (!!v && v.length <= 64) || t('login.username_required')
   ],
   password: [
     v => (v.length >= 6 && v.length <= 64) || t('login.password_required')
