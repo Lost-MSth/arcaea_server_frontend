@@ -1,4 +1,7 @@
-# arcaea_server_frontend
+# Arcaea Server Frontend
+
+> In building...  
+> Do not use it in production!
 
 ## Project setup
 ```
@@ -14,11 +17,3 @@ npm run serve
 ```
 npm run build
 ```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

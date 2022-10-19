@@ -23,13 +23,10 @@ export const route = {
   home: '首页',
   dashboard: '仪表盘',
   test: '测试',
+  user: '用户管理',
   user_info: '查询用户信息',
   profile: '个人信息',
   system: '系统管理',
-  user: '用户管理',
-  role: '角色管理',
-  power: '权限管理',
-  game: '游戏管理',
 }
 
 

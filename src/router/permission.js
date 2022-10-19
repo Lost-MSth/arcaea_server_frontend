@@ -2,7 +2,6 @@ export const async_routes = [{
     path: '/user',
     name: 'user',
     meta: { icon: 'mdi-account' },
-    component: () => import('../views/home.vue'),
     children: [{
         path: '/user/profile',
         name: 'profile',
@@ -18,18 +17,11 @@ export const async_routes = [{
     path: '/system',
     name: 'system',
     meta: { powers: ['system'], icon: 'mdi-cog' },
-    component: () => import('../views/home.vue'),
     children: [{
         path: '/system/dashboard',
         name: 'test',
         component: () => import('../views/home'),
         meta: { powers: ['system'] }
     }]
-},
-{
-    path: '/game',
-    name: 'game',
-    component: () => import('../views/home.vue'),
-    meta: { powers: ['system'] }
 }
 ]

@@ -87,7 +87,7 @@ export const userStore = defineStore("user", {
         },
         generate_routes() {
             this.accessed_routes.forEach((route) => {
-                router.addRoute(route)
+                router.addRoute('home', route)
             })
         },
         async get_user_b30() {

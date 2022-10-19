@@ -23,12 +23,10 @@ export const route = {
   home: 'Main',
   dashboard: 'Dash',
   test: 'Test',
-  profile: 'Profile',
-  system: 'S',
   user: 'User',
-  role: '角色管理',
-  power: '权限管理',
-  game: '游戏管理',
+  profile: 'Profile',
+  user_info: 'Search User',
+  system: 'System',
 }
 
 export const error = {
