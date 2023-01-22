@@ -44,14 +44,14 @@ service._get = (url, data, config = {}) => {
 
 service.interceptors.response.use(
     response => {
-        const message = messageStore()
         if (response.data.code < 0) {
+            const message = messageStore();
             if (response.data.code === -1) {
-                message.error(t('error.' + response.data.code.toString().slice(1)))
+                message.error(t('error.status.' + response.status.toString()))
             } else {
                 message.error(t('error.' + response.data.code.toString().slice(1)))
             }
-            return Promise.reject(response)
+            return Promise.reject(response.data)
         }
         return response.data
     },
@@ -62,15 +62,11 @@ service.interceptors.response.use(
         if (error.response) {
             const res = error.response.data
             if (res.code === -1) {
+                message.error(t('error.status.' + status.toString()))
                 if (status === 401) {
-                    message.error(t('error.status_401'))
                     userStore().$reset()
-                    return Promise.reject(error)
                 }
-                if (status === 429) {
-                    message.error(t('error.status_429'))
-                    return Promise.reject(error)
-                }
+                return Promise.reject(error)
             }
             else if (res.code < -1) {
                 message.error(t('error.' + res.code.toString().slice(1)))

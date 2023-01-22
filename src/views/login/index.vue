@@ -58,9 +58,8 @@ const submitForm = async () => {
     user.token = res.data.token
     user.user_id = res.data.user_id
     router.push('/')
-  }).catch(err => {
+  }).catch(e => {
     logining.value = false
-    console.log(err)
   })
 }
 </script>

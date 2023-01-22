@@ -1,5 +1,5 @@
 <template>
-    <v-card min-width="300" max-width="800">
+    <v-card min-width="500">
         <v-card-title>
             <v-layout>
                 <span class="font-weight-black text-h5">{{props.user.name}}</span>

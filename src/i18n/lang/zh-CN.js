@@ -3,10 +3,6 @@ export const main = {
   select: '查询',
 }
 
-export const lang = {
-  'zh-CN': '中文',
-  'en-US': '英文'
-};
 
 export const login = {
   title: '用户登录',
@@ -23,22 +19,27 @@ export const route = {
   home: '首页',
   dashboard: '仪表盘',
   test: '测试',
-  user: '用户管理',
+  user: '用户',
   user_info: '查询用户信息',
   profile: '个人信息',
-  system: '系统管理',
+  system: '系统',
+  song: '曲目',
+  song_info: '查询曲目信息',
 }
 
 
 export const error = {
   unknown: '未知异常',
   timeout: '请求超时',
-  status_401: '未授权',
-  status_429: '请求过于频繁',
+  status: {
+    401: '未授权',
+    403: '禁止访问',
+    429: '请求过于频繁',
+  },
   1: '见状态码',
   2: '无数据',
   3: '无数据或无此用户',
-  4: '没有用户ID',
+  4: '数据已存在',
   100: '错误的post数据',
   101: '错误的数据类型',
   102: '错误的查询参数',
@@ -69,4 +70,22 @@ export const score = {
 export const form = {
   search: '查找',
   change_user_select_way: '点击切换用户身份类型',
+  ok: '确定',
+  cancel: '取消',
+  delete_confirm: '点击确定以执行删除操作',
+  save: '保存',
+}
+
+export const validate = {
+  required: '必填',
+  is_number: '必须为数字',
+  is_email: '必须为合法邮箱地址',
+}
+
+
+export const song = {
+  song_info_title: '全部曲目信息',
+  song_info_subtitle: 'CC：谱面定数，最多为一位小数{br}' +
+    '谱面定数不存在请填入负数，在默认情况下会作为Unranked谱面{br}' +
+    'Song Name允许留空'
 }

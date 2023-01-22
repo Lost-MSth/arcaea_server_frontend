@@ -14,6 +14,16 @@ export const async_routes = [{
         meta: { powers: ['select'] }
     }]
 }, {
+    path: '/song',
+    name: 'song',
+    meta: { icon: 'mdi-music' },
+    children: [{
+        path: '/song/song_info',
+        name: 'song_info',
+        component: () => import('../views/song/song_info.vue'),
+        meta: { powers: ['select'] }
+    }]
+}, {
     path: '/system',
     name: 'system',
     meta: { powers: ['system'], icon: 'mdi-cog' },

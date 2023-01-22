@@ -3,11 +3,6 @@ export const main = {
   select: 'Search',
 }
 
-export const lang = {
-  'zh-CN': 'Chinese',
-  'en-US': 'English'
-};
-
 export const login = {
   title: 'User Login',
   username: 'Username',
@@ -27,17 +22,22 @@ export const route = {
   profile: 'Profile',
   user_info: 'Search User',
   system: 'System',
+  song: 'Song',
+  song_info: 'All Song Info',
 }
 
 export const error = {
   unknown: 'Unknow error',
   timeout: 'Timeout',
-  status_401: 'Unauthorized',
-  status_429: 'Too many requests',
+  status: {
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    429: 'Too many requests',
+  },
   1: 'See status code',
   2: 'No data',
   3: 'No data or user',
-  4: 'No user_id',
+  4: 'Data exist',
   100: 'Wrong post data',
   101: 'Wrong data type',
   102: 'Wrong query parameter',
@@ -66,6 +66,23 @@ export const score = {
 }
 
 export const form = {
-  search: 'SEARCH',
+  search: 'Search',
   change_user_select_way: 'Click to change user identify type',
+  ok: 'OK',
+  cancel: 'Cancel',
+  delete_confirm: 'Click OK to confirm the deletion',
+  save: 'Save',
+}
+
+export const validate = {
+  required: 'Required',
+  is_number: 'Must be a number',
+  is_email: 'Must be a valid email address',
+}
+
+export const song = {
+  song_info_title: 'All Song Info',
+  song_info_subtitle: 'CC: Chart Const, up to one decimal place{br}' +
+    'When the chart does not exist or is unranked, its chart const should be a negative number, by default which means the chart is unranked.{br}' +
+    "Song's name can be empty."
 }

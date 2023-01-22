@@ -5,7 +5,7 @@
         </template>
         <user_identity v-model="user_identity_dict" :rules="[required]" :readonly="loading" clearable />
     </select_card>
-    <user_info v-if="user.value" :user="user.value" :loading="loading" />
+    <user_info v-if="user.value" :user="user.value" :loading="loading" elevation="1" />
 </template>
 
 <script setup>

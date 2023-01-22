@@ -8,6 +8,11 @@
         <v-spacer></v-spacer>
 
         <div>
+            <v-btn icon class="mx-2" @click="toggle_theme">
+                <v-icon>
+                    {{ theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
+                </v-icon>
+            </v-btn>
             <v-menu location="bottom" rounded offset-y>
                 <template v-slot:activator="{ props }">
                     <v-btn icon v-bind="props" class="mx-2">
@@ -18,10 +23,10 @@
                 </template>
                 <v-list nav density="compact" min-width="80px">
                     <v-list-item rounded key="zh-CN" @click="change_lang('zh-CN')" :active="locale === 'zh-CN'">
-                        <v-list-item-title>{{ t('lang.zh-CN') }}</v-list-item-title>
+                        <v-list-item-title>中文</v-list-item-title>
                     </v-list-item>
                     <v-list-item rounded key="en-US" @click="change_lang('en-US')" :active="locale === 'en-US'">
-                        <v-list-item-title>{{ t('lang.en-US') }}</v-list-item-title>
+                        <v-list-item-title>English</v-list-item-title>
                     </v-list-item>
                 </v-list>
             </v-menu>
@@ -68,6 +73,7 @@ import { userStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import router from '@/router'
 import { ref } from 'vue'
+import { useTheme } from 'vuetify'
 
 const user = userStore()
 const { locale, t } = useI18n()
@@ -94,6 +100,12 @@ const generate_route_list = (routes) => {
 }
 
 const items = generate_route_list(user.accessed_routes)
+
+const theme = useTheme()
+
+const toggle_theme = () => {
+    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+}
 
 const change_lang = (val) => {
     locale.value = val;
