@@ -4,7 +4,7 @@
             <v-layout>
                 <span class="font-weight-black">{{ score.song_name }}</span>
                 <v-chip label class="mx-2 text-button font-weight-bold" :color="'difficulty_' + score.difficulty">
-                    {{ difficulty_short_name[score.difficulty]}}
+                    {{ difficulty_short_name[score.difficulty] }}
                 </v-chip>
                 <v-spacer />
                 <div class="text-h5 font-weight-bold" v-if="rank">
@@ -23,14 +23,17 @@
                         {{ score.score.toLocaleString('en-US') }}
                     </div>
                     <div class="text-subtitle-1">
-                        {{ clear_type_name[score.clear_type]}} ({{ clear_type_name[score.best_clear_type]}})
+                        {{ clear_type_name[score.clear_type] }} ({{ clear_type_name[score.best_clear_type] }})
                     </div>
                     <div class="text-body-2">
                         {{ t('score.rating') }}: {{ score.rating.toFixed(4) }}
                     </div>
                     <div class="text-body-2">
                         {{ t('score.time_played') }}:
-                        {{ moment(score.time_played * 1000).utc().format('YYYY-MM-DD HH:mm:ss UTC') }}
+                        {{ moment(score.time_played * 1000).fromNow() }}
+                        <v-tooltip activator="parent" location="top">
+                            {{ moment(score.time_played * 1000).format('YYYY-MM-DD HH:mm:ss Z') }}
+                        </v-tooltip>
                     </div>
                 </v-col>
                 <v-col cols="4">
@@ -57,6 +60,8 @@ import { useI18n } from 'vue-i18n';
 import { clear_type_name, difficulty_short_name } from '@/config';
 
 const { t } = useI18n()
+moment.locale(localStorage.getItem('lang') || "en-US");
+
 const props = defineProps(['score', 'rank'])
 const score = props.score
 const rank = props.rank

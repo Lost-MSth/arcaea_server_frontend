@@ -23,7 +23,7 @@
 <script setup>
 import { inject, ref } from 'vue'
 import crud_table from '@/components/table/crud_table.vue'
-import { required, is_number } from '@/utils/validate.js'
+import { required, is_number, only_one_decimal_place } from '@/utils/validate.js'
 import { useI18n } from 'vue-i18n';
 import { userStore } from '@/store/user';
 
@@ -61,6 +61,7 @@ const get_song_info = async () => {
             }
         })
     }).catch(e => {
+        console.log(e)
         loading.value = false
     })
 }
@@ -83,16 +84,23 @@ const put_song_info = async (item) => {
         loading.value = false
         return res
     }).catch(e => {
+        console.log(e)
         loading.value = false
+        return e
     })
 }
 
 const delete_song_info = async (items) => {
     loading.value = true
+    let flag = false
     items.map((x) => {
-        $axios.delete('/songs/' + x.song_id).then(res => res).catch(e => e)
+        $axios.delete('/songs/' + x.song_id).then(res => res).catch(e => {
+            // console.log(e)
+            flag = true
+        })
     })
     loading.value = false
+    return flag
 }
 
 const post_song_info = async (item) => {
@@ -110,9 +118,12 @@ const post_song_info = async (item) => {
         }
     }
     return await $axios.post('/songs', data).then(res => {
+        loading.value = false
         return res
     }).catch(e => {
+        console.log(e)
         loading.value = false
+        return e
     })
 }
 
@@ -120,19 +131,19 @@ const post_song_info = async (item) => {
 const put_items = ref([
     { key: 'song_id', title: 'Song ID', 'value': '', 'type': 'primary_key' },
     { key: 'name', title: 'Song Name', 'value': '' },
-    { key: 'chart_const_0', title: 'Past CC', 'value': 0, rules: [is_number] },
-    { key: 'chart_const_1', title: 'Present CC', 'value': 0, rules: [is_number] },
-    { key: 'chart_const_2', title: 'Future CC', 'value': 0, rules: [is_number] },
-    { key: 'chart_const_3', title: 'Beyond CC', 'value': 0, rules: [is_number] }
+    { key: 'chart_const_0', title: 'Past CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_1', title: 'Present CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_2', title: 'Future CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_3', title: 'Beyond CC', 'value': 0, rules: [is_number, only_one_decimal_place] }
 ])
 
 const new_items = ref([
     { key: 'song_id', title: 'Song ID', 'value': '', rules: [required] },
     { key: 'name', title: 'Song Name', 'value': '' },
-    { key: 'chart_const_0', title: 'Past CC', 'value': -1, rules: [is_number] },
-    { key: 'chart_const_1', title: 'Present CC', 'value': -1, rules: [is_number] },
-    { key: 'chart_const_2', title: 'Future CC', 'value': -1, rules: [is_number] },
-    { key: 'chart_const_3', title: 'Beyond CC', 'value': -1, rules: [is_number] }
+    { key: 'chart_const_0', title: 'Past CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_1', title: 'Present CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_2', title: 'Future CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_3', title: 'Beyond CC', 'value': -1, rules: [is_number, only_one_decimal_place] }
 ])
 
 const has_power = () => {

@@ -24,6 +24,7 @@ export const route = {
   system: 'System',
   song: 'Song',
   song_info: 'All Song Info',
+  song_search: 'Search Song',
 }
 
 export const error = {
@@ -68,6 +69,7 @@ export const score = {
 export const form = {
   search: 'Search',
   change_user_select_way: 'Click to change user identify type',
+  change_song_select_way: 'Click to change song name type',
   ok: 'OK',
   cancel: 'Cancel',
   delete_confirm: 'Click OK to confirm the deletion',
@@ -78,11 +80,15 @@ export const validate = {
   required: 'Required',
   is_number: 'Must be a number',
   is_email: 'Must be a valid email address',
+  only_one_decimal_place: 'Can only have one decimal place',
 }
 
 export const song = {
   song_info_title: 'All Song Info',
   song_info_subtitle: 'CC: Chart Const, up to one decimal place{br}' +
     'When the chart does not exist or is unranked, its chart const should be a negative number, by default which means the chart is unranked.{br}' +
-    "Song's name can be empty."
+    "Song's name can be empty.",
+  song_search_title: 'Search Song',
+  song_search_subtitle: 'Fuzzy query by Song Name or Song ID{br}' +
+  'Select difficulty to view the top 20 rankings.',
 }

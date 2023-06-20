@@ -22,7 +22,13 @@ export const async_routes = [{
         name: 'song_info',
         component: () => import('../views/song/song_info.vue'),
         meta: { powers: ['select'] }
-    }]
+    }, {
+        path: '/song/song_search',
+        name: 'song_search',
+        component: () => import('../views/song/song_search.vue'),
+        meta: { powers: ['select', 'select_song_info'] }
+    }
+    ]
 }, {
     path: '/system',
     name: 'system',

@@ -107,8 +107,11 @@ const toggle_theme = () => {
     theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 
+import moment from 'moment';
+
 const change_lang = (val) => {
     locale.value = val;
+    moment.locale(val);
     localStorage.setItem("lang", val);
 }
 

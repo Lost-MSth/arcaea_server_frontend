@@ -1,6 +1,7 @@
 <template>
     <v-data-table :headers="props.headers" :items="data" :search="search"
-        :show-select="props.delete_data !== undefined || props.put_data !== undefined" multi-sort v-model="selected">
+        :show-select="props.delete_data !== undefined || props.put_data !== undefined" multi-sort v-model="selected"
+        return-object>
         <template v-slot:top>
             <v-toolbar flat>
                 <v-toolbar-title v-if="props.title.length > 0">{{ props.title }}</v-toolbar-title>
@@ -18,8 +19,8 @@
                 </v-dialog>
                 <v-dialog v-model="edit_dialog" max-width="500" v-if="props.put_data !== undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn color="secondary" v-bind="props"
-                            :disabled="selected == undefined || selected.length !== 1" @click="init_edit">
+                        <v-btn color="secondary" v-bind="props" :disabled="selected == undefined || selected.length !== 1"
+                            @click="init_edit">
                             Edit
                         </v-btn>
                     </template>
@@ -72,7 +73,9 @@ const close_delete_dialog = () => {
 const delete_items = () => {
     props.delete_data(selected.value).then(res => {
         close_delete_dialog()
-        //get_table_data()
+        // get_table_data()
+        // console.log(res)
+        if (res) { return }
         selected.value.forEach((item) => {
             data.value.splice(data.value.indexOf(item), 1)
         })
@@ -91,7 +94,9 @@ const save_new_item = () => {
     })
     props.post_data(item).then(res => {
         close_new_dialog()
-        //get_table_data()
+        // get_table_data()
+        // console.log(res)
+        if (res.code !== 0) { return }
         data.value.push(item)
     })
 }
@@ -124,6 +129,7 @@ const save_edit_item = () => {
     props.put_data(item).then(res => {
         close_edit_dialog()
         //get_table_data()
+        if (res.code !== 0) { return }
         for (let key in item) {
             selected.value[0][key] = item[key]
         }

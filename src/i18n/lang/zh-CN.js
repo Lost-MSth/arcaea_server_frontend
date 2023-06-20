@@ -24,7 +24,8 @@ export const route = {
   profile: '个人信息',
   system: '系统',
   song: '曲目',
-  song_info: '查询曲目信息',
+  song_info: '全部曲目信息',
+  song_search: '查询曲目信息',
 }
 
 
@@ -70,6 +71,7 @@ export const score = {
 export const form = {
   search: '查找',
   change_user_select_way: '点击切换用户身份类型',
+  change_song_select_way: '点击切换歌曲名称类型',
   ok: '确定',
   cancel: '取消',
   delete_confirm: '点击确定以执行删除操作',
@@ -80,12 +82,16 @@ export const validate = {
   required: '必填',
   is_number: '必须为数字',
   is_email: '必须为合法邮箱地址',
+  only_one_decimal_place: '只能有一位小数',
 }
 
 
 export const song = {
   song_info_title: '全部曲目信息',
   song_info_subtitle: 'CC：谱面定数，最多为一位小数{br}' +
-    '谱面定数不存在请填入负数，在默认情况下会作为Unranked谱面{br}' +
-    'Song Name允许留空'
+    '谱面定数不存在请填入负数，在默认情况下会作为 Unranked 谱面{br}' +
+    'Song Name 允许留空',
+  song_search_title: '查询曲目信息',
+  song_search_subtitle: '可切换查询方式为 Song Name 或 Song ID，是模糊查询{br}' +
+  '选择难度可以查看排行榜前 20 名',
 }

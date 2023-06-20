@@ -1,4 +1,4 @@
-export const baseURL = '/api' // 'http://localhost/api/v1'
+export const baseURL = '/api'
 
 export const difficulty_short_name = ['PST', 'PRS', 'FTR', 'BYD']
 
