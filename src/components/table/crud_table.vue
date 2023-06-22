@@ -3,11 +3,13 @@
         :show-select="props.delete_data !== undefined || props.put_data !== undefined" multi-sort v-model="selected"
         return-object>
         <template v-slot:top>
-            <v-toolbar flat>
+            <v-toolbar flat class="overflow-auto">
                 <v-toolbar-title v-if="props.title.length > 0">{{ props.title }}</v-toolbar-title>
                 <v-spacer v-if="props.title.length > 0" />
-                <v-text-field v-model="search" class="mx-4" prepend-icon="mdi-magnify" label='Search' single-line
-                    hide-details density="compact" variant="underlined"></v-text-field>
+                <v-responsive min-width="125">
+                <v-text-field v-model="search" class="mx-4" prepend-icon="mdi-magnify" label='Search'
+                    single-line hide-details density="compact" variant="underlined"></v-text-field>
+                </v-responsive>
                 <v-spacer v-if="props.title.length === 0" />
                 <v-dialog v-model="new_dialog" max-width="500" v-if="props.post_data !== undefined">
                     <template v-slot:activator="{ props }">

@@ -65,7 +65,10 @@ export const userStore = defineStore("user", {
     getters: {
         accessed_routes() {
             return filter_routes(async_routes, this.powers)
-        }
+        },
+        // character_id_display() {
+        //     return this.character.character_id
+        // }
     },
     actions: {
         async get_user_info() {
@@ -75,8 +78,18 @@ export const userStore = defineStore("user", {
                 this.rating_ptt = res.data.rating
                 this.is_hide_rating = res.data.is_hide_rating
                 this.ticket = res.data.ticket
-                this.character.character_id = res.data.character
                 this.join_date = res.data.join_date
+
+                this.character.character_id = res.data.character
+                res.data.character_stats.find((char) => {
+                    if (char.character_id === this.character.character_id) {
+                        this.character.is_uncapped = char.is_uncapped
+                        this.character.is_uncapped_override = char.is_uncapped_override
+                        return true
+                    }
+                    return false
+                })
+
             })
         },
         async get_user_role() {

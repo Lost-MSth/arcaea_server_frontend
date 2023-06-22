@@ -10,10 +10,11 @@ module.exports = defineConfig({
           '^/api': ''
         }
       }
-    }
+    },
   },
   transpileDependencies: true,
   lintOnSave: false,
+  productionSourceMap: false,
 
   pluginOptions: {
     vuetify: {

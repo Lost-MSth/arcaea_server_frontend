@@ -10,7 +10,7 @@
                     </div>
                 </v-card-title>
                 <v-row class="mx-auto my-4">
-                    <v-col lg="6" cols="12" v-for="(value, key) in props.user.b30_scores" :key="key"
+                    <v-col md="6" cols="12" v-for="(value, key) in props.user.b30_scores" :key="key"
                         class="d-flex justify-center">
                         <score_card variant="flat" :score="value" :rank="key + 1" class="flex-grow-1" />
                     </v-col>

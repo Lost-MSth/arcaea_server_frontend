@@ -42,14 +42,6 @@ const select_song = async () => {
     $axios._get('/songs', { 'fuzzy_query': { [song_dict.key]: song_dict.value } }).then(res => {
         song.value = res.data[0]
         loading.value = false
-        // $axios.get('/users/' + user.value.user_id + '/b30').then(res => {
-        //     user.value.b30_ptt = res.data.b30_ptt
-        //     user.value.b30_scores = res.data.data
-        //     loading.value = false
-        // }).catch(err => {
-        //     console.log(err)
-        //     loading.value = false
-        // })
     }).catch(err => {
         loading.value = false
         console.log(err)

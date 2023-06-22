@@ -34,8 +34,11 @@
             <v-menu location="bottom" min-width="100px" rounded offset-y>
                 <template v-slot:activator="{ props }">
                     <v-btn icon v-bind="props" class="mx-2">
-                        <v-avatar color="primary-darken-1" size="large">
-                            <span class="white--text text-h5">{{ user.name.slice(0, 2) }}</span>
+                        <v-avatar color="rgba(0,0,0,0)" size="large">
+                            <v-img cover
+                                :src="get_char_icon(user.character.character_id, user.character.is_uncapped, user.character.is_uncapped_override)"
+                                :alt="user.name"></v-img>
+                            <!-- <span class="white--text text-h5">{{ user.name.slice(0, 2) }}</span> -->
                         </v-avatar>
                     </v-btn>
                 </template>
@@ -74,6 +77,7 @@ import { useI18n } from 'vue-i18n'
 import router from '@/router'
 import { ref } from 'vue'
 import { useTheme } from 'vuetify'
+import { get_char_icon } from '@/utils/img_getter.js'
 
 const user = userStore()
 const { locale, t } = useI18n()

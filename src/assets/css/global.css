@@ -1,6 +1,6 @@
 html,
 body {
-    height: 100%;
+    min-width: 300px;
 }
 
 .clear_type-0 {

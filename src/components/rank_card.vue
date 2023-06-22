@@ -1,5 +1,5 @@
 <template>
-    <v-card min-width="350">
+    <v-card min-width="300">
         <v-row class="mx-2 my-1">
             <v-col cols="1">
                 <div class="text-h5 font-weight-bold">
@@ -36,7 +36,6 @@
                 </div>
             </v-col>
         </v-row>
-
     </v-card>
 </template>
 <script setup>

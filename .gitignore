@@ -2,6 +2,9 @@
 node_modules
 /dist
 
+# arcaea assets
+/public/static
+
 
 # local env files
 .env.local

@@ -1,19 +1,20 @@
 <template>
     <v-card>
         <v-card-title>
-            <v-layout>
+            <v-layout class="overflow-auto">
                 <span class="font-weight-black">{{ score.song_name }}</span>
-                <v-chip label class="mx-2 text-button font-weight-bold" :color="'difficulty_' + score.difficulty">
-                    {{ difficulty_short_name[score.difficulty] }}
-                </v-chip>
+                <div>
+                    <v-chip label class="mx-2 text-button font-weight-bold" :color="'difficulty_' + score.difficulty">
+                        {{ difficulty_short_name[score.difficulty] }}
+                    </v-chip>
+                </div>
                 <v-spacer />
                 <div class="text-h5 font-weight-bold" v-if="rank">
                     #{{ rank }}
                 </div>
             </v-layout>
-
         </v-card-title>
-        <v-card-subtitle>
+        <v-card-subtitle class="overflow-auto">
             {{ score.song_id }}
         </v-card-subtitle>
         <v-card-text>

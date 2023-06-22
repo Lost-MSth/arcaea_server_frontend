@@ -1,17 +1,17 @@
 <template>
-    <v-card class="mx-auto my-6 pa-4" max-width="1000">
+    <v-card class="mx-auto my-6 pa-4" max-width="1000" min-width="250">
         <v-card-title>
-            <div class="text-h5">
+            <div class="text-h5 overflow-auto">
                 <slot name="title"></slot>
             </div>
         </v-card-title>
         <v-card-subtitle>
-            <div class="text-body-2">
+            <div class="text-body-2 overflow-auto">
                 <slot name="subtitle"></slot>
             </div>
         </v-card-subtitle>
         <v-card-text>
-            <div class="text-body-1">
+            <div class="text-body-1 overflow-auto">
                 <slot name="body"></slot>
             </div>
             <v-form v-model="form" @submit.prevent="submit_function">
