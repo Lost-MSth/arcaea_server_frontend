@@ -1,5 +1,5 @@
 <template>
-    <v-data-table :headers="props.headers" :items="data" :search="search"
+    <v-data-table density="compact" :headers="props.headers" :items="data" :search="search"
         :show-select="props.delete_data !== undefined || props.put_data !== undefined" multi-sort v-model="selected"
         return-object>
         <template v-slot:top>

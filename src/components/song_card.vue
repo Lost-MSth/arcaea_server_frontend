@@ -11,7 +11,7 @@
                 <v-card-text>
                     <v-chip-group v-model="props.difficulty_selected.difficulty" filter variant="outlined"
                         :disabled="props.loading">
-                        <v-chip v-for="(_, index) in 4" label class="mx-2 text-button font-weight-bold"
+                        <v-chip v-for="(_, index) in 5" label class="mx-2 text-button font-weight-bold"
                             :color="'difficulty_' + index">
                             {{ difficulty_short_name[index] + ": " + (chart_consts[index] >= 0 ?
                                 chart_consts[index].toFixed(1) :

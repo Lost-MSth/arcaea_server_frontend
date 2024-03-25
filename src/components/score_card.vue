@@ -23,9 +23,22 @@
                     <div class="text-h5 font-weight-bold">
                         {{ score.score.toLocaleString('en-US') }}
                     </div>
-                    <div class="text-subtitle-1">
+                    <div class="text-caption">
                         {{ clear_type_name[score.clear_type] }} ({{ clear_type_name[score.best_clear_type] }})
                     </div>
+
+                    <div class="text-button">
+                        <span>
+                            P: {{ score.perfect_count }} ({{ score.shiny_perfect_count }})
+                        </span>
+                        <span>
+                            F: {{ score.near_count }}
+                        </span>
+                        <span>
+                            L: {{ score.miss_count }}
+                        </span>
+                    </div>
+
                     <div class="text-body-2">
                         {{ t('score.rating') }}: {{ score.rating.toFixed(4) }}
                     </div>
@@ -38,17 +51,7 @@
                     </div>
                 </v-col>
                 <v-col cols="4">
-                    <div class="text-body-1">
-                        <div>
-                            PURE: {{ score.perfect_count }} ({{ score.shiny_perfect_count }})
-                        </div>
-                        <div>
-                            FAR: {{ score.near_count }}
-                        </div>
-                        <div>
-                            LOST: {{ score.miss_count }}
-                        </div>
-                    </div>
+                    <v-img :src="song_img_url"></v-img>
                 </v-col>
             </v-row>
         </v-card-text>
@@ -57,8 +60,11 @@
 
 <script setup>
 import moment from 'moment';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { clear_type_name, difficulty_short_name } from '@/config';
+
+import { get_song_img } from '@/utils/img_getter';
 
 const { t } = useI18n()
 moment.locale(localStorage.getItem('lang') || "en-US");
@@ -66,4 +72,9 @@ moment.locale(localStorage.getItem('lang') || "en-US");
 const props = defineProps(['score', 'rank'])
 const score = props.score
 const rank = props.rank
+
+const song_img_url = computed(() => {
+    return get_song_img(score.song_id)
+})
+
 </script>

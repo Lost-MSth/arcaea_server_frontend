@@ -5,6 +5,7 @@ export const light = {
         difficulty_1: "#648C3C",
         difficulty_2: "#501948",
         difficulty_3: "#822328",
+        difficulty_4: "#715c89",
     }
 }
 
@@ -15,5 +16,6 @@ export const dark = {
         difficulty_1: "#9AD85C",
         difficulty_2: "#9C308C",
         difficulty_3: "#CE373F",
+        difficulty_4: "#9581b0",
     }
 }

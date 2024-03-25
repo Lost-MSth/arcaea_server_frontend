@@ -40,6 +40,7 @@ const headers = [
     { key: 'chart_const_1', title: 'Present CC' },
     { key: 'chart_const_2', title: 'Future CC' },
     { key: 'chart_const_3', title: 'Beyond CC' },
+    { key: 'chart_const_4', title: 'Eternal CC' },
 ]
 
 const get_song_info = async () => {
@@ -47,7 +48,7 @@ const get_song_info = async () => {
     return await $axios.get('/songs').then(res => {
         loading.value = false
         return res.data.map(item => {
-            let chart_const = [-1, -1, -1, -1]
+            let chart_const = [-1, -1, -1, -1, -1]
             item.charts.forEach(element => {
                 chart_const[element.difficulty] = element.chart_const
             });
@@ -57,7 +58,8 @@ const get_song_info = async () => {
                 chart_const_0: chart_const[0],
                 chart_const_1: chart_const[1],
                 chart_const_2: chart_const[2],
-                chart_const_3: chart_const[3]
+                chart_const_3: chart_const[3],
+                chart_const_4: chart_const[4]
             }
         })
     }).catch(e => {
@@ -134,7 +136,8 @@ const put_items = ref([
     { key: 'chart_const_0', title: 'Past CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
     { key: 'chart_const_1', title: 'Present CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
     { key: 'chart_const_2', title: 'Future CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
-    { key: 'chart_const_3', title: 'Beyond CC', 'value': 0, rules: [is_number, only_one_decimal_place] }
+    { key: 'chart_const_3', title: 'Beyond CC', 'value': 0, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_4', title: 'Eternal CC', 'value': 0, rules: [is_number, only_one_decimal_place] }
 ])
 
 const new_items = ref([
@@ -143,7 +146,8 @@ const new_items = ref([
     { key: 'chart_const_0', title: 'Past CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
     { key: 'chart_const_1', title: 'Present CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
     { key: 'chart_const_2', title: 'Future CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
-    { key: 'chart_const_3', title: 'Beyond CC', 'value': -1, rules: [is_number, only_one_decimal_place] }
+    { key: 'chart_const_3', title: 'Beyond CC', 'value': -1, rules: [is_number, only_one_decimal_place] },
+    { key: 'chart_const_4', title: 'Eternal CC', 'value': -1, rules: [is_number, only_one_decimal_place] }
 ])
 
 const has_power = () => {
