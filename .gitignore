@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 /dist
+/tmp
+/.npm-cache
 
 # arcaea assets
 /public/static
