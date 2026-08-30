@@ -1,73 +1,227 @@
 <template>
-    <select_card :loading="loading" :submit_function="select_song">
-        <template #title>
-            {{ $t('song.song_search_title') }}
-        </template>
-        <template #subtitle>
-            <i18n-t keypath="song.song_search_subtitle" tag="span">
-                <template #br>
-                    <br />
-                </template>
-            </i18n-t>
-        </template>
-        <song_id_name v-model="song_dict" :rules="[required]" :readonly="loading" clearable />
-    </select_card>
-    <v-sheet class="my-2 mx-auto" max-width="1000">
-        <song_card v-if="song.value" :song="song" :difficulty_selected="difficulty_selected" :loading="loading"
-            elevation="1"></song_card>
-        <rank_card v-for="(item, index) in rank_list.data" :key="index" :data="item" />
-    </v-sheet>
+  <div>
+    <PageHeader :eyebrow="t('route.song_search')" :title="t('song.song_search_title')" :subtitle="t('song.song_search_subtitle')" />
+
+    <n-card class="search-card" :bordered="true">
+      <div class="search-row">
+        <div class="segmented">
+          <button :class="{ on: mode === 0 }" @click="mode = 0">{{ t('song.search_by_id') }}</button>
+          <button :class="{ on: mode === 1 }" @click="mode = 1">{{ t('song.search_by_name') }}</button>
+        </div>
+        <n-input v-model:value="query" :placeholder="mode === 0 ? t('song.search_by_id') : t('song.search_by_name')" class="q" @keyup.enter="searchSong">
+          <template #prefix><AppIcon name="search" :size="16" /></template>
+        </n-input>
+        <n-button type="primary" :loading="loading" @click="searchSong">{{ t('common.search') }}</n-button>
+      </div>
+    </n-card>
+
+    <n-spin :show="loading">
+      <div v-if="song" class="song-card glass">
+        <SongJacket :song-id="song.song_id" :size="104" :radius="14" :alt="song.name" />
+        <div class="song-meta">
+          <div class="song-title">
+            <h3 class="font-display">{{ song.name || song.song_id }}</h3>
+            <span class="hud sid">{{ song.song_id }}</span>
+          </div>
+          <div class="chips">
+            <button
+              v-for="c in song.charts"
+              :key="c.difficulty"
+              class="diff-btn diff"
+              :class="['diff-' + c.difficulty, { active: selected === c.difficulty, disabled: c.chart_const < 0 }]"
+              :disabled="c.chart_const < 0"
+              @click="selectDifficulty(c.difficulty)"
+            >
+              {{ diffName[c.difficulty] }} {{ c.chart_const >= 0 ? c.chart_const.toFixed(1) : t('song.no_chart') }}
+            </button>
+          </div>
+          <p v-if="selected === null" class="hint hud">{{ t('song.select_difficulty') }}</p>
+        </div>
+      </div>
+
+      <template v-if="selected !== null">
+        <div class="rank-head">
+          <h3 class="font-display">{{ t('song.rank_title') }} · {{ t('song.top20') }}</h3>
+          <span class="diff" :class="'diff-' + selected">{{ diffName[selected] }}</span>
+        </div>
+        <div v-if="ranks.length" class="rank-list">
+          <RankRow v-for="(r, i) in ranks" :key="i" :data="r" />
+        </div>
+        <div v-else class="empty glass hud">{{ t('common.no_data') }}</div>
+      </template>
+    </n-spin>
+  </div>
 </template>
 
 <script setup>
-import song_card from '@/components/song_card.vue'
-import select_card from '@/components/select_card.vue'
-import song_id_name from '@/components/text_field/song_id_name.vue'
-import rank_card from '@/components/rank_card.vue'
-import { reactive, ref, inject, watch } from 'vue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { NCard, NInput, NButton, NSpin } from 'naive-ui'
 
-const $axios = inject('$axios')
+import PageHeader from '@/components/PageHeader.vue'
+import SongJacket from '@/components/SongJacket.vue'
+import RankRow from '@/components/RankRow.vue'
+import service from '@/plugins/axios'
+import { difficulty_short_name } from '@/config'
 
+const { t } = useI18n()
+const diffName = difficulty_short_name
+
+const mode = ref(0)
+const query = ref('')
 const loading = ref(false)
-const song_dict = reactive({ 'key': 'song_id', 'value': '' })
+const song = ref(null)
+const selected = ref(null)
+const ranks = ref([])
 
-const song = reactive({})
-const difficulty_selected = reactive({ 'difficulty': undefined })
-
-const rank_list = reactive({ data: [] })
-
-const select_song = async () => {
-    loading.value = true
-    difficulty_selected.difficulty = undefined
-    $axios._get('/songs', { 'fuzzy_query': { [song_dict.key]: song_dict.value } }).then(res => {
-        song.value = res.data[0]
-        loading.value = false
-    }).catch(err => {
-        loading.value = false
-        console.log(err)
-    })
+const searchSong = async () => {
+  if (!query.value.trim()) return
+  loading.value = true
+  selected.value = null
+  ranks.value = []
+  song.value = null
+  try {
+    const key = mode.value === 0 ? 'song_id' : 'name'
+    const res = await service._get('/songs', { fuzzy_query: { [key]: query.value.trim() } })
+    song.value = res.data[0]
+  } catch (e) {
+    /* surfaced */
+  } finally {
+    loading.value = false
+  }
 }
 
-const get_song_ranklist = async () => {
-    loading.value = true
-    $axios._get('/songs/' + song.value.song_id + '/' + difficulty_selected.difficulty + '/rank', { 'limit': 20 }).then(res => {
-        // console.log(res.data)
-        rank_list.data = res.data
-        loading.value = false
-    }).catch(err => {
-        loading.value = false
-        console.log(err)
-    })
+const selectDifficulty = async (d) => {
+  if (selected.value === d) {
+    selected.value = null
+    ranks.value = []
+    return
+  }
+  selected.value = d
+  loading.value = true
+  try {
+    const res = await service._get('/songs/' + song.value.song_id + '/' + d + '/rank', { limit: 20 })
+    ranks.value = res.data
+  } catch (e) {
+    ranks.value = []
+  } finally {
+    loading.value = false
+  }
 }
-
-watch(difficulty_selected, () => {
-    if (difficulty_selected.difficulty !== undefined) {
-        get_song_ranklist()
-    } else {
-        rank_list.data = []
-    }
-    // console.log(difficulty_selected.difficulty)
-})
-
-const required = (v) => { return (!!v && v.length <= 256) || 'Required' }
 </script>
+
+<style scoped>
+.search-card {
+  border-radius: 16px;
+  margin-bottom: 18px;
+}
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.segmented button {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 12px;
+  padding: 7px 13px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.segmented button.on {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.q {
+  flex: 1;
+  min-width: 180px;
+}
+.song-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.song-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.song-title h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.sid {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.diff-btn {
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 11px;
+  transition:
+    transform 0.14s,
+    box-shadow 0.14s;
+}
+.diff-btn.active {
+  box-shadow: 0 0 0 2px var(--c);
+  transform: translateY(-1px);
+}
+.diff-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+.rank-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.rank-head h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.empty {
+  padding: 36px;
+  text-align: center;
+  color: var(--text-muted);
+}
+@media (max-width: 620px) {
+  .song-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}
+</style>

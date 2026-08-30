@@ -1,81 +1,182 @@
 export const main = {
-  title: 'Arcaea Server',
-  select: '查询',
+  title: 'Arcaea 控制台',
+  subtitle: '服务器控制台',
 }
 
-
 export const login = {
-  title: '用户登录',
+  title: '欢迎回来',
+  subtitle: '登录你的 Arcaea 服务器',
   username: '用户名',
   password: '密码',
   login: '登录',
+  logout: '退出登录',
   username_required: '请输入正确的用户名',
-  password_required: '请输入正确的密码',
-  error: '用户名或密码错误',
-  logout: '退出登录'
-};
-
-export const route = {
-  home: '首页',
-  dashboard: '仪表盘',
-  test: '测试',
-  user: '用户',
-  user_info: '查询用户信息',
-  profile: '个人信息',
-  system: '系统',
-  song: '曲目',
-  song_info: '全部曲目信息',
-  song_search: '查询曲目信息',
+  password_required: '密码长度需为 6–64 位',
+  server_address: '服务器地址',
+  server_address_hint:
+    '留空则使用托管本页面的同一台服务器。填写（如 https://host/api/v1）可指向远程后端。',
+  advanced: '高级',
 }
 
+export const nav = {
+  player: '玩家',
+  content: '内容',
+  economy: '经济',
+  system: '系统',
+}
 
-export const error = {
-  unknown: '未知异常',
-  timeout: '请求超时',
-  status: {
-    401: '未授权',
-    403: '禁止访问',
-    429: '请求过于频繁',
-  },
-  1: '见状态码',
-  2: '无数据',
-  3: '无数据或无此用户',
-  4: '数据已存在',
-  100: '错误的post数据',
-  101: '错误的数据类型',
-  102: '错误的查询参数',
-  103: '错误的排序参数',
-  104: '错误的排序顺序参数',
-  200: '无权限',
-  201: '错误的用户名或密码',
-  202: '用户已被封禁',
-  203: '用户名已存在',
-  204: '邮箱地址已存在',
-  205: '登录尝试次数过多',
-  999: '未知错误'
-};
+export const route = {
+  dashboard: '仪表盘',
+  profile: '个人信息',
+  users: '用户',
+  song_search: '曲目查询',
+  song_manage: '曲目管理',
+  characters: '角色',
+  items: '物品',
+  purchases: '购买项',
+  presents: '奖励',
+  redeems: '兑换码',
+  multiplay: '联机',
+  operations: '系统操作',
+}
+
+export const common = {
+  search: '查询',
+  filter: '筛选',
+  refresh: '刷新',
+  new: '新增',
+  edit: '编辑',
+  delete: '删除',
+  save: '保存',
+  cancel: '取消',
+  confirm: '确定',
+  ok: '确定',
+  run: '执行',
+  close: '关闭',
+  actions: '操作',
+  all: '全部',
+  loading: '加载中…',
+  no_data: '暂无数据',
+  yes: '是',
+  no: '否',
+  selected: '已选',
+  selected_n: '已选 {n} 项',
+  total: '共',
+  available: '可用',
+  unavailable: '不可用',
+  language: '语言',
+  theme: '主题',
+}
+
+export const dashboard = {
+  overview: '服务器概览',
+  users: '用户',
+  songs: '曲目',
+  rooms: '联机房间',
+  server: '服务端',
+  healthy: '运行正常',
+  leaderboard: '潜力值排行榜',
+  world_rank: '世界排名',
+  no_backend: '无法连接后端。请检查服务器地址，或确认服务端已启动。',
+  live_rooms: '活跃房间',
+}
 
 export const user = {
   join_date: '注册日期',
   ticket: '记忆源点',
-  b30_ptt: 'Best 30 潜力值',
-  r10_ptt: 'Recent Top 10 潜力值',
-  user_select_title: '查询用户信息',
+  b30_ptt: 'Best 30',
+  r10_ptt: 'Recent 10',
+  potential: '潜力值',
+  user_id: '用户 ID',
+  user_code: '好友码',
+  rating: '潜力值',
+  banned: '已封禁',
+  best30: 'Best 30',
+  recent30: 'Recent 30',
+  recent10: 'Recent 10',
+  user_select_title: '查询用户',
+  search_by: '查询方式',
+  rating_history: '潜力值历史',
 }
 
 export const score = {
   rating: '谱面评价',
-  time_played: '取得日期',
+  time_played: '取得时间',
+  pure: 'Pure',
+  far: 'Far',
+  lost: 'Lost',
+  score: '分数',
+  clear_type: '通关',
 }
 
-export const form = {
-  search: '查找',
-  change_user_select_way: '点击切换用户身份类型',
-  change_song_select_way: '点击切换歌曲名称类型',
-  ok: '确定',
-  cancel: '取消',
-  delete_confirm: '点击确定以执行删除操作',
-  save: '保存',
+export const song = {
+  song_info_title: '曲目管理',
+  song_info_subtitle:
+    'CC 为谱面定数，保留一位小数。填负数表示该谱面未定级 / 不存在。曲名可留空。',
+  song_search_title: '曲目查询',
+  song_search_subtitle: '按 ID 或曲名模糊查询，选择难度可查看该难度前 20 名排行。',
+  cc: '定数',
+  rank_title: '排行榜',
+  top20: '前 20 名',
+  select_difficulty: '选择难度以加载排行榜',
+  no_chart: '无',
+  search_by_id: '曲目 ID',
+  search_by_name: '曲目名称',
+}
+
+export const manage = {
+  characters_title: '角色',
+  characters_subtitle: '查看与调整角色数值和技能。',
+  items_title: '物品',
+  items_subtitle: 'pack、single、world_song、character。',
+  purchases_title: '购买项',
+  purchases_subtitle: '商店购买项及价格。',
+  presents_title: '奖励',
+  presents_subtitle: '发放给玩家的奖励，含过期时间。',
+  redeems_title: '兑换码',
+  redeems_subtitle: '兑换码及其类型。',
+  multiplay_title: '联机房间',
+  multiplay_subtitle: '服务器上的实时联机房间。',
+  delete_confirm: '确定删除选中的 {n} 行？此操作不可撤销。',
+  created: '已创建',
+  updated: '已更新',
+  deleted: '已删除',
+  items_action: '物品',
+  cores_action: '觉醒核心',
+  items_title: '物品 · {name}',
+  cores_title: '觉醒核心 · {name}',
+  add_row: '添加物品',
+  col_type: '类型',
+  col_id: '物品 ID',
+  col_amount: '数量',
+  no_items: '暂无物品',
+  items_saved: '物品已更新',
+  items_note: '引用的物品必须已存在于物品表中。',
+}
+
+export const ops = {
+  title: '系统操作',
+  subtitle: '由 /system/operations 暴露的维护任务，部分较重或有破坏性。',
+  run_confirm: '执行操作「{name}」？',
+  running: '执行中…',
+  done: '操作完成',
+  user_id_optional: '用户 ID（可选，留空表示所有用户）',
+  refresh_all_score_rating: '刷新全部成绩评分',
+  refresh_all_score_rating_desc: '重新计算所有 best_score 的 rating 与 score_v2。',
+  refresh_song_file_cache: '刷新歌曲文件缓存',
+  refresh_song_file_cache_desc: '重新计算文件 hash 并重建 songlist。',
+  refresh_content_bundle_cache: '刷新热更新缓存',
+  refresh_content_bundle_cache_desc: '重建 content bundle 缓存。',
+  refresh_world_map_cache: '刷新世界地图缓存',
+  refresh_world_map_cache_desc: '重新解析并缓存世界地图。',
+  save_update_score: '存档同步成绩',
+  save_update_score_desc: '将玩家存档写入 best_score 表。',
+  unlock_user_item: '解锁用户物品',
+  unlock_user_item_desc: '为某个或所有用户授予 / 锁定 pack 与 single。',
+  delete_user_score: '删除用户成绩',
+  delete_user_score_desc: '删除某用户的成绩（移入回收数据库）。',
+  delete_one_user: '删除用户',
+  delete_one_user_desc: '删除整个账号（移入回收数据库）。',
 }
 
 export const validate = {
@@ -85,13 +186,43 @@ export const validate = {
   only_one_decimal_place: '只能有一位小数',
 }
 
-
-export const song = {
-  song_info_title: '全部曲目信息',
-  song_info_subtitle: 'CC：谱面定数，最多为一位小数{br}' +
-    '谱面定数不存在请填入负数，在默认情况下会作为 Unranked 谱面{br}' +
-    'Song Name 允许留空',
-  song_search_title: '查询曲目信息',
-  song_search_subtitle: '可切换查询方式为 Song Name 或 Song ID，是模糊查询{br}' +
-  '选择难度可以查看排行榜前 20 名',
+export const error = {
+  unknown: '未知异常',
+  timeout: '请求超时',
+  network: '网络错误，无法连接服务器',
+  status: {
+    400: '请求错误',
+    401: '未授权',
+    403: '禁止访问',
+    404: '未找到',
+    429: '请求过于频繁',
+    500: '服务器错误',
+  },
+  1: '见状态码',
+  2: '无数据',
+  3: '无数据或无此用户',
+  4: '数据已存在',
+  100: '错误的提交数据',
+  101: '错误的数据类型',
+  102: '错误的查询参数',
+  103: '错误的排序参数',
+  104: '错误的排序顺序参数',
+  105: '错误的 URL 参数',
+  110: '无效的用户 ID',
+  120: '无效的物品类型',
+  121: '物品不存在',
+  122: '物品已存在',
+  123: '集合中已有该物品',
+  124: '集合中没有该物品',
+  130: '角色不存在',
+  131: '无效的技能 ID',
+  200: '无权限',
+  201: '错误的用户名或密码',
+  202: '用户已被封禁',
+  203: '登录尝试次数过多',
+  210: '用户名已存在',
+  211: '邮箱地址已存在',
+  212: '好友码已存在',
+  213: '注册尝试次数过多',
+  999: '未知错误',
 }

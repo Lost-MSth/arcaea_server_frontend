@@ -1,29 +1,54 @@
 <template>
-  <v-app>
-    <v-main class="primary fill-height pb-5">
-      <arc_message />
-      <router-view></router-view>
-    </v-main>
-    <v-footer height="18">
-      <div class="py-1 text-center w-100 text-caption">
-        Made by Lost @ 2020-{{ new Date().getFullYear() }}
-      </div>
-    </v-footer>
-  </v-app>
+  <n-config-provider
+    :theme="app.isDark ? darkTheme : null"
+    :theme-overrides="themeOverrides"
+    :locale="naiveLocale"
+    :date-locale="naiveDateLocale"
+    class="app-root"
+  >
+    <n-loading-bar-provider>
+      <n-message-provider>
+        <n-dialog-provider>
+          <n-notification-provider>
+            <router-view />
+          </n-notification-provider>
+        </n-dialog-provider>
+      </n-message-provider>
+    </n-loading-bar-provider>
+    <n-global-style />
+  </n-config-provider>
 </template>
 
-<script>
-import arc_message from '@/components/message.vue'
+<script setup>
+import { computed, watchEffect } from 'vue'
+import {
+  darkTheme,
+  zhCN,
+  enUS,
+  dateZhCN,
+  dateEnUS,
+  NConfigProvider,
+  NLoadingBarProvider,
+  NMessageProvider,
+  NDialogProvider,
+  NNotificationProvider,
+  NGlobalStyle,
+} from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'App',
+import { themeOverrides } from '@/plugins/theme'
+import { appStore } from '@/store/app'
 
-  components: {
-    arc_message,
-  },
+const app = appStore()
+const { locale } = useI18n()
 
-  data: () => ({
-    //
-  }),
-}
+const naiveLocale = computed(() => (locale.value === 'zh-CN' ? zhCN : enUS))
+const naiveDateLocale = computed(() => (locale.value === 'zh-CN' ? dateZhCN : dateEnUS))
+
+// Drive the CSS variable theme (aurora background, glass, etc.) from the store.
+watchEffect(() => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', app.theme)
+  }
+})
 </script>

@@ -1,92 +1,88 @@
-import axios from "axios"
-import {
-    baseURL
-} from "../config"
-import {
-    userStore
-} from "../store/user"
-import i18n from '../i18n'
-import {
-    messageStore
-} from '../store/message'
+import axios from 'axios'
+import { Base64 } from 'js-base64'
 
-const {
-    t
-} = i18n.global
+import { resolveApiBase } from '@/config'
+import i18n from '@/i18n'
+import { message } from '@/plugins/discrete'
+import { userStore } from '@/store/user'
 
-axios.defaults.withCredentials = true
-axios.defaults.headers["Content-Type"] = "application/json; charset=utf-8"
+const { t } = i18n.global
 
 const service = axios.create({
-    baseURL: baseURL,
-    timeout: 50000
+  baseURL: resolveApiBase(),
+  timeout: 50000,
+  // Auth is via the `Token` header, not cookies, so we keep credentials off —
+  // this keeps cross-origin (static-Pages) deployments CORS-simple.
+  withCredentials: false,
 })
+service.defaults.headers['Content-Type'] = 'application/json; charset=utf-8'
 
-service.interceptors.request.use(
-    config => {
-        const user = userStore()
-        if (user.token !== null && user.token !== '') {
-            config.headers['Token'] = user.token
-        }
-        return config
-    },
-)
-
-const Base64 = require('js-base64').Base64
-
-service._get = (url, data, config = {}) => {
-    let new_config = {
-        params: { query: Base64.encode(JSON.stringify(data)) },
-        ...config
-    }
-    return service.get(url, new_config)
+// Re-read the API base after the user changes the server address in the UI.
+export function applyApiBase() {
+  service.defaults.baseURL = resolveApiBase()
 }
 
+// The server accepts GET query bodies as a base64 `query` param (axios can't
+// send a GET body). Mirrors the original `_get` helper.
+service._get = (url, data, config = {}) =>
+  service.get(url, {
+    params: { query: Base64.encode(JSON.stringify(data)) },
+    ...config,
+  })
+
+function codeMessage(code) {
+  const key = 'error.' + Math.abs(code)
+  const msg = t(key)
+  return msg === key ? t('error.unknown') : msg
+}
+
+function statusMessage(status) {
+  const key = 'error.status.' + status
+  const msg = t(key)
+  return msg === key ? t('error.unknown') : msg
+}
+
+service.interceptors.request.use((config) => {
+  const user = userStore()
+  if (user.token) {
+    config.headers['Token'] = user.token
+  }
+  return config
+})
+
 service.interceptors.response.use(
-    response => {
-        if (response.data.code < 0) {
-            const message = messageStore();
-            if (response.data.code === -1) {
-                message.error(t('error.status.' + response.status.toString()))
-            } else {
-                message.error(t('error.' + response.data.code.toString().slice(1)))
-            }
-            return Promise.reject(response.data)
-        }
-        return response.data
-    },
-    error => {
-        let status = error.response.status;
-        const message = messageStore();
-        if (error.response.data.code === undefined) console.log('response err:\n' + JSON.stringify(error.response));
-        if (error.response) {
-            const res = error.response.data
-            if (res.code === -1) {
-                message.error(t('error.status.' + status.toString()))
-                if (status === 401) {
-                    userStore().$reset()
-                }
-                return Promise.reject(error)
-            }
-            else if (res.code < -1) {
-                message.error(t('error.' + res.code.toString().slice(1)))
-                return Promise.reject(res)
-            }
-            else if (res.code !== undefined) {
-                message.error(res.msg)
-            }
-            else {
-                message.error(t('error.unknown'))
-
-            }
-        } else if (error.message.includes('timeout')) {
-            message.error(t('error.timeout'));
-        } else {
-            message.error(t('error.unknown'));
-        }
-
-        return Promise.reject(error.response.data)
+  (response) => {
+    const silent = response.config && response.config.silent
+    const res = response.data
+    if (res && res.code < 0) {
+      if (!silent) message.error(res.code === -1 ? statusMessage(response.status) : codeMessage(res.code))
+      return Promise.reject(res)
     }
+    return res
+  },
+  (error) => {
+    const silent = error.config && error.config.silent
+    if (error.response) {
+      const status = error.response.status
+      const res = error.response.data || {}
+      // A 401 always clears the session, even for silent calls.
+      if (status === 401) userStore().$reset()
+      if (!silent) {
+        if (res.code === undefined || res.code === -1) {
+          message.error(statusMessage(status))
+        } else if (res.code < -1) {
+          message.error(codeMessage(res.code))
+        } else {
+          message.error(res.msg || t('error.unknown'))
+        }
+      }
+      return Promise.reject(res)
+    }
+    if (!silent) {
+      message.error(error.message && error.message.includes('timeout') ? t('error.timeout') : t('error.network'))
+    }
+    return Promise.reject(error)
+  },
 )
 
 export default service

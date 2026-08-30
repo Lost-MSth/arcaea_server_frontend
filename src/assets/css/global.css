@@ -1,29 +1,176 @@
-html,
-body {
-    min-width: 300px;
+/* ============================================================
+   Arcaea Server Console — global tokens & utilities
+   Naive UI themes the components; these variables carry the
+   custom "aurora" identity (background, glass, difficulty colors).
+   The app always stamps <html data-theme="dark|light">.
+   ============================================================ */
+
+:root,
+:root[data-theme='dark'] {
+  --bg: #0a0d1a;
+  --bg-2: #0d1122;
+  --surface: rgba(24, 30, 54, 0.62);
+  --surface-solid: #161c33;
+  --surface-2: rgba(32, 40, 70, 0.55);
+  --elevate: rgba(255, 255, 255, 0.04);
+  --border: rgba(150, 165, 220, 0.14);
+  --border-strong: rgba(150, 165, 220, 0.26);
+  --text: #eaeefb;
+  --text-2: #b6bfe0;
+  --text-muted: #7f89ad;
+  --accent: #8a7bff;
+  --accent-2: #37dfe8;
+  --accent-3: #f078c8;
+  --accent-soft: rgba(138, 123, 255, 0.16);
+  --ring: rgba(138, 123, 255, 0.55);
+  --good: #57d9a3;
+
+  --diff-0: #23b7ff;
+  --diff-1: #63cf6a;
+  --diff-2: #c164da;
+  --diff-3: #e8505b;
+  --diff-4: #c3aef2;
+
+  --aurora-1: rgba(138, 123, 255, 0.2);
+  --aurora-2: rgba(55, 223, 232, 0.11);
+  --aurora-3: rgba(240, 120, 200, 0.11);
+  --shadow: 0 24px 48px -30px rgba(0, 0, 0, 0.85);
 }
 
-.clear_type-0 {
-    background-color: rgb(146, 52, 81)!important;
-    border-color: rgb(146, 52, 81)!important;
+:root[data-theme='light'] {
+  --bg: #f4f6fd;
+  --bg-2: #eef1fb;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-solid: #ffffff;
+  --surface-2: rgba(240, 243, 253, 0.9);
+  --elevate: rgba(20, 28, 60, 0.03);
+  --border: rgba(60, 74, 130, 0.14);
+  --border-strong: rgba(60, 74, 130, 0.26);
+  --text: #171d34;
+  --text-2: #414a6e;
+  --text-muted: #7a83a4;
+  --accent: #6a5bf0;
+  --accent-2: #1aa7b3;
+  --accent-3: #d0489f;
+  --accent-soft: rgba(106, 91, 240, 0.12);
+  --ring: rgba(106, 91, 240, 0.4);
+  --good: #2fa579;
+
+  --diff-0: #0d92e0;
+  --diff-1: #3fae53;
+  --diff-2: #a63ec0;
+  --diff-3: #d63b48;
+  --diff-4: #8a6fd6;
+
+  --aurora-1: rgba(106, 91, 240, 0.12);
+  --aurora-2: rgba(55, 190, 210, 0.1);
+  --aurora-3: rgba(230, 110, 190, 0.09);
+  --shadow: 0 22px 44px -30px rgba(40, 50, 100, 0.4);
 }
-.clear_type-1 {
-    background-color: rgb(205, 179, 205)!important;
-    border-color: rgb(205, 179, 205)!important;
+
+* {
+  box-sizing: border-box;
 }
-.clear_type-2 {
-    background-color: rgb(154, 134, 154)!important;
-    border-color: rgb(154, 134, 154)!important;
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  min-width: 320px;
 }
-.clear_type-3 {
-    background-color: rgb(127, 149, 170)!important;
-    border-color: rgb(127, 149, 170)!important;
+
+body {
+  font-family: 'Manrope', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 620px at 12% -8%, var(--aurora-1), transparent 60%),
+    radial-gradient(1000px 520px at 102% 2%, var(--aurora-2), transparent 55%),
+    radial-gradient(1000px 780px at 50% 118%, var(--aurora-3), transparent 62%),
+    var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
 }
-.clear_type-4 {
-    background-color: rgb(152, 178, 167)!important;
-    border-color: rgb(152, 178, 167)!important;
+
+.app-root {
+  min-height: 100vh;
 }
-.clear_type-5 {
-    background-color: rgb(200, 91, 122)!important;
-    border-color: rgb(200, 91, 122)!important;
+
+/* HUD / numeric display face */
+.hud {
+  font-family: 'Chakra Petch', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.font-display {
+  font-family: 'Sora', 'Segoe UI', system-ui, sans-serif;
+}
+
+.gradient-text {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Difficulty chip — set .diff and a difficulty modifier */
+.diff {
+  --c: var(--diff-2);
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Chakra Petch', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 2px 9px;
+  border-radius: 7px;
+  color: var(--c);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--c) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c) 42%, transparent);
+}
+.diff-0 {
+  --c: var(--diff-0);
+}
+.diff-1 {
+  --c: var(--diff-1);
+}
+.diff-2 {
+  --c: var(--diff-2);
+}
+.diff-3 {
+  --c: var(--diff-3);
+}
+.diff-4 {
+  --c: var(--diff-4);
+}
+
+/* Glass surface helper for a few bespoke cards */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+/* Thin, theme-aware scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
