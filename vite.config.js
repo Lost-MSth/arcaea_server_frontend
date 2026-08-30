@@ -55,6 +55,12 @@ export default defineConfig({
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,
       },
+      // Optional image assets (jackets / char icons) served by the backend's
+      // Flask static route.
+      '/static': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: true,
+      },
     },
   },
   build: {

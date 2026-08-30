@@ -75,8 +75,8 @@ const columns = computed(() => [
     title: t('fields.name'),
     key: 'name',
     ellipsis: { tooltip: true },
-    // `is_banned` is rendered when the server exposes it in /users (optional
-    // server enhancement — see SERVER_CHANGES.md §3.3).
+    // `is_banned` is rendered when the server exposes it in /users
+    // (optional server enhancement).
     render: (r) =>
       r.is_banned
         ? h('span', { style: 'display:inline-flex;align-items:center;gap:8px' }, [
@@ -170,8 +170,8 @@ const openDetail = async (row) => {
   detailLoading.value = true
   nextTick(() => document.querySelector('.detail-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   const [b30, rating] = await Promise.allSettled([
-    service.get(`/users/${row.user_id}/b30`, { silent: true }),
-    service._get(`/users/${row.user_id}/rating`, { duration: 90 }, { silent: true }),
+    service.cachedGet(`/users/${row.user_id}/b30`, null, { silent: true }),
+    service.cachedGet(`/users/${row.user_id}/rating`, { duration: 90 }, { silent: true }),
   ])
   if (b30.status === 'fulfilled') {
     target.value.b30_ptt = b30.value.data.b30_ptt
@@ -179,7 +179,8 @@ const openDetail = async (row) => {
   }
   if (rating.status === 'fulfilled') {
     const d = (rating.value.data.data || []).slice().sort((a, b) => a.time - b.time)
-    ratingPoints.value = d.map((x) => x.rating_ptt)
+    // API times are seconds; the chart wants ms epochs for its date axis.
+    ratingPoints.value = d.map((x) => ({ time: x.time * 1000, value: x.rating_ptt }))
   }
   detailLoading.value = false
 }

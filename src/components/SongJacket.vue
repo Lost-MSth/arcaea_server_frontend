@@ -1,15 +1,15 @@
 <template>
   <div class="jacket" :style="{ width: size + 'px', height: size + 'px', borderRadius: radius + 'px' }">
-    <img v-if="!failed" :src="src" :alt="alt" loading="lazy" @error="failed = true" />
+    <img v-if="src" :src="src" :alt="alt" loading="lazy" decoding="async" draggable="false" @error="onError" />
     <span v-else class="fallback"><AppIcon name="note" :size="Math.round(size * 0.32)" /></span>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 import AppIcon from '@/components/AppIcon.vue'
-import { get_song_img } from '@/utils/img_getter'
+import { get_song_img, imgFailed, markImgFailed } from '@/utils/img_getter'
 
 const props = defineProps({
   songId: { type: String, required: true },
@@ -18,16 +18,19 @@ const props = defineProps({
   alt: { type: String, default: '' },
 })
 
-const failed = ref(false)
-const src = ref(get_song_img(props.songId))
-
-watch(
-  () => props.songId,
-  (id) => {
-    failed.value = false
-    src.value = get_song_img(id)
-  },
-)
+// Candidate chain (1080 -> non-1080); failed URLs are remembered for the
+// session so revisits render the placeholder without re-requesting.
+const bump = ref(0)
+const src = computed(() => {
+  void bump.value
+  return get_song_img(props.songId).find((u) => !imgFailed(u)) || null
+})
+const onError = () => {
+  if (src.value) {
+    markImgFailed(src.value)
+    bump.value++
+  }
+}
 </script>
 
 <style scoped>
@@ -35,7 +38,7 @@ watch(
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #2a2350, #14284a);
+  background: var(--surface-2);
   border: 1px solid var(--border);
 }
 .jacket img {
@@ -49,6 +52,6 @@ watch(
   inset: 0;
   display: grid;
   place-items: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 </style>

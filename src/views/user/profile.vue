@@ -67,6 +67,7 @@ const shownScores = computed(() => (tab.value === 'b30' ? user.b30_scores : user
 
 const me = computed(() => ({
   name: user.name,
+  character: user.character,
   rating_ptt: user.rating_ptt,
   user_id: user.user_id,
   user_code: user.user_code,
@@ -81,13 +82,14 @@ const ratingDays = ref(30)
 
 const fetchRating = async () => {
   try {
-    const res = await service._get(
+    const res = await service.cachedGet(
       '/users/' + user.user_id + '/rating',
       { duration: ratingDays.value },
       { silent: true },
     )
     const data = (res.data.data || []).slice().sort((a, b) => a.time - b.time)
-    ratingPoints.value = data.map((d) => d.rating_ptt)
+    // API times are seconds; the chart wants ms epochs for its date axis.
+    ratingPoints.value = data.map((d) => ({ time: d.time * 1000, value: d.rating_ptt }))
   } catch (e) {
     ratingPoints.value = []
   }

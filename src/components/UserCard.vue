@@ -6,6 +6,13 @@
       </div>
       <div class="meta">
         <div class="name-row">
+          <CharIcon
+            :char-id="charId"
+            :uncapped="!!(user.is_char_uncapped ?? user.character?.is_uncapped)"
+            :uncapped-override="!!(user.is_char_uncapped_override ?? user.character?.is_uncapped_override)"
+            :name="user.name"
+            :size="38"
+          />
           <span class="nm font-display">{{ user.name }}</span>
           <n-tag v-if="user.is_banned" type="error" size="small" round :bordered="false">
             {{ t('user.banned') }}
@@ -40,6 +47,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NTag } from 'naive-ui'
 
+import CharIcon from '@/components/CharIcon.vue'
 import dayjs from '@/plugins/day'
 
 const props = defineProps({
@@ -47,6 +55,10 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+
+// Accepts both shapes: flat row fields (character_id / is_char_uncapped, as
+// returned by /users and /users/<id>/brief) or the store's nested character.
+const charId = computed(() => props.user.character_id ?? props.user.character?.character_id ?? null)
 
 const pttText = computed(() => {
   const r = props.user.rating_ptt ?? props.user.rating

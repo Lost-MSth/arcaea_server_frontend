@@ -15,6 +15,9 @@ export const login = {
   server_address: '服务器地址',
   server_address_hint:
     '留空则使用托管本页面的同一台服务器。填写（如 https://host/api/v1）可指向远程后端。',
+  assets_address: '图片资源地址（可选）',
+  assets_address_hint:
+    '留空则自动从服务器地址推导（后端 /static）。可填 CDN 或其它静态地址；填 off 则完全不加载图片。',
   advanced: '高级',
 }
 

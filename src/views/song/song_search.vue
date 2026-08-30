@@ -116,7 +116,10 @@ const searchSong = async () => {
   results.value = []
   try {
     const key = mode.value === 0 ? 'song_id' : 'name'
-    const res = await service._get('/songs', { fuzzy_query: { [key]: query.value.trim() }, limit: 12 })
+    const res = await service.cachedGet('/songs', {
+      fuzzy_query: { [key]: query.value.trim() },
+      limit: 12,
+    })
     results.value = res.data
     if (res.data.length === 1) selectSong(res.data[0])
   } catch (e) {
@@ -135,7 +138,9 @@ const selectDifficulty = async (d) => {
   selected.value = d
   loading.value = true
   try {
-    const res = await service._get('/songs/' + song.value.song_id + '/' + d + '/rank', { limit: 20 })
+    const res = await service.cachedGet('/songs/' + song.value.song_id + '/' + d + '/rank', {
+      limit: 20,
+    })
     ranks.value = res.data
   } catch (e) {
     ranks.value = []

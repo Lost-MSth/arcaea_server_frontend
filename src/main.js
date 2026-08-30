@@ -1,17 +1,20 @@
 import { createApp } from 'vue'
 
 // Self-hosted fonts — bundled locally so they load same-origin (no Google
-// Fonts dependency; reliable offline and in mainland China).
-import '@fontsource/sora/500.css'
-import '@fontsource/sora/600.css'
-import '@fontsource/sora/700.css'
-import '@fontsource/manrope/400.css'
-import '@fontsource/manrope/500.css'
-import '@fontsource/manrope/600.css'
-import '@fontsource/manrope/700.css'
-import '@fontsource/chakra-petch/500.css'
-import '@fontsource/chakra-petch/600.css'
-import '@fontsource/chakra-petch/700.css'
+// Fonts dependency; reliable offline and in mainland China). latin-only:
+// the UI's non-ASCII text is Chinese, which these faces don't cover anyway
+// (system fallback renders it) — skipping the other subsets keeps ~50 unused
+// font files out of dist.
+import '@fontsource/sora/latin-500.css'
+import '@fontsource/sora/latin-600.css'
+import '@fontsource/sora/latin-700.css'
+import '@fontsource/manrope/latin-400.css'
+import '@fontsource/manrope/latin-500.css'
+import '@fontsource/manrope/latin-600.css'
+import '@fontsource/manrope/latin-700.css'
+import '@fontsource/chakra-petch/latin-500.css'
+import '@fontsource/chakra-petch/latin-600.css'
+import '@fontsource/chakra-petch/latin-700.css'
 
 import App from './App.vue'
 import i18n from './i18n'

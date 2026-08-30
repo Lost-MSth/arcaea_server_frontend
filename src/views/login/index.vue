@@ -53,6 +53,12 @@
             </n-input>
           </n-form-item>
           <p class="hint">{{ t('login.server_address_hint') }}</p>
+          <n-form-item path="assets" :show-label="false">
+            <n-input v-model:value="form.assets" :placeholder="t('login.assets_address')" size="large">
+              <template #prefix><AppIcon name="image" :size="16" /></template>
+            </n-input>
+          </n-form-item>
+          <p class="hint">{{ t('login.assets_address_hint') }}</p>
         </n-collapse-transition>
 
         <n-button
@@ -88,6 +94,7 @@ import {
 import AppIcon from '@/components/AppIcon.vue'
 import service, { applyApiBase } from '@/plugins/axios'
 import { getStoredApiBase, setStoredApiBase } from '@/config'
+import { getStoredAssetsBase, setStoredAssetsBase } from '@/utils/img_getter'
 import { appStore } from '@/store/app'
 import { userStore } from '@/store/user'
 
@@ -101,12 +108,13 @@ const formRef = ref(null)
 const userInputRef = ref(null)
 onMounted(() => userInputRef.value?.focus())
 const loading = ref(false)
-const showAdvanced = ref(!!getStoredApiBase())
+const showAdvanced = ref(!!getStoredApiBase() || !!getStoredAssetsBase())
 
 const form = reactive({
   username: '',
   password: '',
   server: getStoredApiBase(),
+  assets: getStoredAssetsBase(),
 })
 
 const rules = {
@@ -141,6 +149,7 @@ const submit = () => {
   formRef.value?.validate((errors) => {
     if (errors) return
     setStoredApiBase(form.server.trim())
+    setStoredAssetsBase(form.assets.trim())
     applyApiBase()
     loading.value = true
     service

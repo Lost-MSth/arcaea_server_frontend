@@ -58,7 +58,13 @@
 
         <n-dropdown trigger="click" :options="userOptions" @select="onUserSelect">
           <button class="avatar" :aria-label="user.name || 'user'">
-            {{ initials }}
+            <CharIcon
+              :char-id="user.character.character_id"
+              :uncapped="!!user.character.is_uncapped"
+              :uncapped-override="!!user.character.is_uncapped_override"
+              :name="user.name"
+              :size="40"
+            />
           </button>
         </n-dropdown>
       </header>
@@ -82,6 +88,7 @@ import { NDrawer, NDrawerContent, NDropdown, NPopover } from 'naive-ui'
 
 import NavRail from '@/components/NavRail.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import CharIcon from '@/components/CharIcon.vue'
 import { ACCENT_PRESETS } from '@/plugins/theme'
 import { appStore } from '@/store/app'
 import { userStore } from '@/store/user'
@@ -97,11 +104,6 @@ const drawer = ref(false)
 const current = computed(() => {
   const title = route.meta && route.meta.title
   return title ? t('route.' + title) : t('route.dashboard')
-})
-
-const initials = computed(() => {
-  const n = user.name || 'A'
-  return n.slice(0, 2).toUpperCase()
 })
 
 const langOptions = [
@@ -210,11 +212,8 @@ const onUserSelect = (key) => {
   height: 40px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, var(--accent), var(--accent-3));
-  color: #fff;
-  font-family: 'Chakra Petch', monospace;
-  font-weight: 700;
-  font-size: 13px;
+  padding: 0;
+  background: none;
   cursor: pointer;
   display: grid;
   place-items: center;

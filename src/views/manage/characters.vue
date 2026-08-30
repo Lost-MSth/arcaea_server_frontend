@@ -24,10 +24,11 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import PageHeader from '@/components/PageHeader.vue'
+import CharIcon from '@/components/CharIcon.vue'
 import CrudTable from '@/components/CrudTable.vue'
 import ItemsEditor from '@/components/ItemsEditor.vue'
 import service from '@/plugins/axios'
@@ -39,7 +40,16 @@ const canWrite = user.has_power('change')
 
 const columns = computed(() => [
   { title: t('fields.id'), key: 'character_id', width: 70 },
-  { title: t('fields.name'), key: 'name', ellipsis: { tooltip: true } },
+  {
+    title: t('fields.name'),
+    key: 'name',
+    ellipsis: { tooltip: true },
+    render: (r) =>
+      h('span', { style: 'display:inline-flex;align-items:center;gap:8px;min-width:0' }, [
+        h(CharIcon, { charId: r.character_id, uncapped: !!r.is_uncapped, name: r.name, size: 30 }),
+        h('span', { style: 'overflow:hidden;text-overflow:ellipsis' }, r.name),
+      ]),
+  },
   { title: t('fields.max_level'), key: 'max_level', width: 100, align: 'right' },
   { title: t('fields.skill'), key: 'skill_id', ellipsis: { tooltip: true }, render: (r) => r.skill_id || '—' },
   { title: t('fields.uncapped'), key: 'is_uncapped', width: 100, render: (r) => (r.is_uncapped ? t('common.yes') : t('common.no')) },

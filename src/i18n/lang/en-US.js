@@ -15,6 +15,9 @@ export const login = {
   server_address: 'Server address',
   server_address_hint:
     'Leave blank to use the same server that hosts this page. Set it (e.g. https://host/api/v1) to point at a remote backend.',
+  assets_address: 'Image assets address (optional)',
+  assets_address_hint:
+    'Leave blank to derive from the server address (backend /static). Point it at a CDN or any static host; set to off to disable images entirely.',
   advanced: 'Advanced',
 }
 

@@ -77,11 +77,12 @@ export const userStore = defineStore('user', {
       return this.powers.includes(power)
     },
     async get_user_info() {
-      // Prefer the lightweight `/users/<id>/brief` (single-row query, see
-      // SERVER_CHANGES.md §4.2); older servers without it fall back to the
-      // full `/users/<id>` payload.
+      // Prefer the lightweight `/users/<id>/brief` (single-row query);
+      // older servers without it fall back to the full `/users/<id>` payload.
       try {
-        const res = await axios.get('/users/' + this.user_id + '/brief', { silent: true })
+        const res = await axios.cachedGet('/users/' + this.user_id + '/brief', null, {
+          silent: true,
+        })
         const d = res.data
         this.user_code = d.user_code
         this.name = d.name
@@ -121,12 +122,12 @@ export const userStore = defineStore('user', {
     // owns the real router instance — the store must not import the router
     // back (circular dependency, and a stale instance under dev HMR).
     async get_user_b30() {
-      const res = await axios.get('/users/' + this.user_id + '/b30')
+      const res = await axios.cachedGet('/users/' + this.user_id + '/b30')
       this.b30_ptt = res.data.b30_ptt
       this.b30_scores = res.data.data
     },
     async get_user_recent() {
-      const res = await axios.get('/users/' + this.user_id + '/r30')
+      const res = await axios.cachedGet('/users/' + this.user_id + '/r30')
       this.r10_ptt = res.data.r10_ptt
       this.r30_scores = res.data.data
     },

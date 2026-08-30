@@ -143,7 +143,7 @@ onMounted(async () => {
   }
   loadingBoard.value = true
   // Cached (60s TTL) — revisiting the dashboard doesn't re-hit the server.
-  // Counts prefer /system/statistics (a few COUNT(*), SERVER_CHANGES.md §4.1);
+  // Counts prefer /system/statistics (a few server-side COUNT(*));
   // servers without it fall back to pulling the full lists.
   const [st, rooms, board, recent] = await Promise.allSettled([
     service.cachedGet('/system/statistics', null, { silent: true }),
