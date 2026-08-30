@@ -3,18 +3,23 @@
     <div class="toolbar">
       <n-input
         v-if="searchKeys.length"
+        ref="filterRef"
         v-model:value="filter"
         :placeholder="t('common.filter')"
         clearable
         class="filter-input"
       >
+        <template #clear-icon><AppIcon name="close" :size="14" /></template>
         <template #prefix><AppIcon name="search" :size="16" /></template>
       </n-input>
       <n-tag v-if="checkedKeys.length" type="primary" round closable @close="checkedKeys = []">
         {{ t('common.selected_n', { n: checkedKeys.length }) }}
       </n-tag>
       <div class="toolbar-spacer"></div>
-      <n-button quaternary circle :title="t('common.refresh')" :loading="loading" @click="reload">
+      <n-button quaternary circle :title="t('common.export')" :disabled="!filteredRows.length" @click="exportCsv">
+        <template #icon><AppIcon name="download" :size="18" /></template>
+      </n-button>
+      <n-button quaternary circle :title="t('common.refresh')" :loading="loading" @click="() => reload(true)">
         <template #icon><AppIcon name="refresh" :size="18" /></template>
       </n-button>
       <template v-if="canWrite">
@@ -46,6 +51,7 @@
       :checked-row-keys="checkedKeys"
       :pagination="pagination"
       :scroll-x="scrollX"
+      :row-props="rowProps"
       size="small"
       @update:checked-row-keys="(k) => (checkedKeys = k)"
     />
@@ -114,7 +120,7 @@
 </template>
 
 <script setup>
-import { computed, h, onMounted, reactive, ref, watch } from 'vue'
+import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NCard,
@@ -159,12 +165,25 @@ const dialog = useDialog()
 const rows = ref([])
 const loading = ref(false)
 const filter = ref('')
+const filterRef = ref(null)
 const checkedKeys = ref([])
+
+// Remember the chosen page size per table (keyed by route path).
+const PSIZE_KEY = 'psize:' + (typeof location !== 'undefined' ? location.hash.split('?')[0] : '')
+const storedPageSize = (() => {
+  try {
+    const v = Number(localStorage.getItem(PSIZE_KEY))
+    return [15, 30, 50, 100].includes(v) ? v : 15
+  } catch (e) {
+    return 15
+  }
+})()
+
 // Controlled pagination: Naive treats a provided `pageSize` as controlled, so
 // the size picker only works if we handle the update events ourselves.
 const pagination = reactive({
   page: 1,
-  pageSize: 15,
+  pageSize: storedPageSize,
   showSizePicker: true,
   pageSizes: [15, 30, 50, 100],
   onUpdatePage: (p) => {
@@ -173,25 +192,50 @@ const pagination = reactive({
   onUpdatePageSize: (ps) => {
     pagination.pageSize = ps
     pagination.page = 1
+    try {
+      localStorage.setItem(PSIZE_KEY, String(ps))
+    } catch (e) {
+      /* ignore */
+    }
   },
 })
+
+// Press `/` anywhere (outside inputs/modals) to focus the filter box.
+const onGlobalKey = (e) => {
+  if (e.key !== '/') return
+  const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase()
+  if (['input', 'textarea', 'select'].includes(tag) || (e.target && e.target.isContentEditable)) return
+  if (document.querySelector('.n-modal')) return
+  e.preventDefault()
+  filterRef.value?.focus()
+}
+onMounted(() => window.addEventListener('keydown', onGlobalKey))
+onUnmounted(() => window.removeEventListener('keydown', onGlobalKey))
 
 const selectionColumn = { type: 'selection' }
 const actionsColumn = computed(() => ({
   title: t('common.actions'),
   key: '__actions',
-  width: 120,
+  width: Math.max(96, props.extraActions.length * 70 + 16),
   render: (row) =>
     h(
       'div',
       { style: 'display:flex;gap:6px' },
-      props.extraActions.map((a) =>
-        h(
-          NButton,
-          { size: 'tiny', quaternary: true, type: 'primary', onClick: () => a.onClick(row) },
-          { default: () => a.label },
+      props.extraActions
+        .filter((a) => (typeof a.show === 'function' ? a.show(row) : true))
+        .map((a) =>
+          h(
+            NButton,
+            {
+              size: 'tiny',
+              quaternary: true,
+              type: a.type || 'primary',
+              disabled: typeof a.disabled === 'function' ? a.disabled(row) : false,
+              onClick: () => a.onClick(row),
+            },
+            { default: () => a.label },
+          ),
         ),
-      ),
     ),
 }))
 // Generic client-side sorter: numbers numerically, booleans by truth, the
@@ -239,11 +283,12 @@ watch(filter, () => {
   pagination.page = 1
 })
 
-const reload = async () => {
+// `force` bypasses the page's request cache (manual refresh, after mutations).
+const reload = async (force = false) => {
   loading.value = true
   checkedKeys.value = []
   try {
-    const data = await props.loadFn()
+    const data = await props.loadFn(force === true)
     rows.value = Array.isArray(data) ? data : []
   } catch (e) {
     rows.value = []
@@ -252,7 +297,7 @@ const reload = async () => {
   }
 }
 
-onMounted(reload)
+onMounted(() => reload(false))
 
 // ---- modal (create / edit) ----
 const modalShow = ref(false)
@@ -308,13 +353,46 @@ const save = () => {
         message.success(t('manage.updated'))
       }
       modalShow.value = false
-      await reload()
+      await reload(true)
     } catch (e) {
       /* interceptor already surfaced the error */
     } finally {
       saving.value = false
     }
   })
+}
+
+// Double-click a row to edit it directly (when editing is available).
+const rowProps = (row) => {
+  if (!(props.canWrite && props.editFields && props.onEdit)) return {}
+  return {
+    // Suppress the browser's double-click text selection without disabling
+    // normal single-click text selection.
+    onMousedown: (e) => {
+      if (e.detail > 1) e.preventDefault()
+    },
+    onDblclick: () => {
+      checkedKeys.value = [props.rowKey(row)]
+      openEdit()
+    },
+  }
+}
+
+// Export the currently filtered rows (raw values) as a UTF-8 BOM CSV.
+const exportCsv = () => {
+  const cols = props.columns.filter((c) => c.key)
+  const esc = (v) => {
+    const s = v == null ? '' : String(v)
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
+  }
+  const lines = [cols.map((c) => esc(typeof c.title === 'string' ? c.title : c.key)).join(',')]
+  filteredRows.value.forEach((r) => lines.push(cols.map((c) => esc(r[c.key])).join(',')))
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'console-export-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.csv'
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 
 const confirmDelete = () => {
@@ -328,7 +406,7 @@ const confirmDelete = () => {
       try {
         await props.onDelete(selected)
         message.success(t('manage.deleted'))
-        await reload()
+        await reload(true)
       } catch (e) {
         /* surfaced by interceptor */
       }

@@ -39,32 +39,32 @@ const { t } = useI18n()
 const user = userStore()
 const canWrite = user.has_power('change')
 
-const columns = [
-  { title: 'Name', key: 'name', ellipsis: { tooltip: true } },
-  { title: 'Price', key: 'price', width: 110 },
-  { title: 'Orig. price', key: 'orig_price', width: 120 },
-  { title: 'Discount', key: 'discount_reason', width: 140, render: (r) => r.discount_reason || '—' },
-]
+const columns = computed(() => [
+  { title: t('fields.name'), key: 'name', ellipsis: { tooltip: true } },
+  { title: t('fields.price'), key: 'price', width: 110, align: 'right' },
+  { title: t('fields.orig_price'), key: 'orig_price', width: 120, align: 'right' },
+  { title: t('fields.discount'), key: 'discount_reason', width: 140, render: (r) => r.discount_reason || '—' },
+])
 
-const createFields = [
-  { key: 'purchase_name', label: 'Purchase name', type: 'text', required: true },
-  { key: 'orig_price', label: 'Orig. price', type: 'number', default: 0, required: true },
-  { key: 'price', label: 'Price', type: 'number', default: 0 },
-  { key: 'discount_reason', label: 'Discount reason', type: 'text' },
-  { key: 'discount_from', label: 'Discount from', type: 'datetime' },
-  { key: 'discount_to', label: 'Discount to', type: 'datetime' },
-]
-const editFields = [
-  { key: 'name', label: 'Name', type: 'text', primary: true },
-  { key: 'orig_price', label: 'Orig. price', type: 'number' },
-  { key: 'price', label: 'Price', type: 'number' },
-  { key: 'discount_reason', label: 'Discount reason', type: 'text' },
-  { key: 'discount_from', label: 'Discount from', type: 'datetime' },
-  { key: 'discount_to', label: 'Discount to', type: 'datetime' },
-]
+const createFields = computed(() => [
+  { key: 'purchase_name', label: t('fields.purchase_name'), type: 'text', required: true },
+  { key: 'orig_price', label: t('fields.orig_price'), type: 'number', default: 0, required: true },
+  { key: 'price', label: t('fields.price'), type: 'number', default: 0 },
+  { key: 'discount_reason', label: t('fields.discount_reason'), type: 'text' },
+  { key: 'discount_from', label: t('fields.discount_from'), type: 'datetime' },
+  { key: 'discount_to', label: t('fields.discount_to'), type: 'datetime' },
+])
+const editFields = computed(() => [
+  { key: 'name', label: t('fields.name'), type: 'text', primary: true },
+  { key: 'orig_price', label: t('fields.orig_price'), type: 'number' },
+  { key: 'price', label: t('fields.price'), type: 'number' },
+  { key: 'discount_reason', label: t('fields.discount_reason'), type: 'text' },
+  { key: 'discount_from', label: t('fields.discount_from'), type: 'datetime' },
+  { key: 'discount_to', label: t('fields.discount_to'), type: 'datetime' },
+])
 
-const loadFn = async () => {
-  const res = await service.get('/purchases')
+const loadFn = async (force) => {
+  const res = await service.cachedGet('/purchases', null, { force })
   return res.data
 }
 

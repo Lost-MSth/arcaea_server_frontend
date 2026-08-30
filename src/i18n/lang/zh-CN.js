@@ -66,6 +66,10 @@ export const common = {
   unavailable: '不可用',
   language: '语言',
   theme: '主题',
+  accent: '主题色',
+  copy: '复制',
+  copied: '已复制',
+  export: '导出 CSV',
 }
 
 export const dashboard = {
@@ -76,9 +80,11 @@ export const dashboard = {
   server: '服务端',
   healthy: '运行正常',
   leaderboard: '潜力值排行榜',
+  recent_users: '最新注册',
   world_rank: '世界排名',
   no_backend: '无法连接后端。请检查服务器地址，或确认服务端已启动。',
   live_rooms: '活跃房间',
+  scores: '成绩总数',
 }
 
 export const user = {
@@ -97,6 +103,18 @@ export const user = {
   user_select_title: '查询用户',
   search_by: '查询方式',
   rating_history: '潜力值历史',
+  manage_title: '玩家管理',
+  manage_subtitle: '筛选、创建与编辑玩家;点「详情」查看该玩家的 Best 30。',
+  detail: '详情',
+  ban: '封禁',
+  ban_confirm: '确定封禁用户「{name}」?其密码将被清空,重设密码(通过编辑)前无法登录。',
+  banned_done: '已封禁',
+  ban_self: '不能封禁当前登录的账号',
+  keep_hint: '留空则不修改',
+  unban: '解封',
+  unban_hint: '为「{name}」设置新密码以解除封禁:',
+  unban_done: '已解封',
+  pwd_len: '密码长度需为 8-32 位',
 }
 
 export const score = {
@@ -122,6 +140,20 @@ export const song = {
   no_chart: '无',
   search_by_id: '曲目 ID',
   search_by_name: '曲目名称',
+  results_n: '{n} 个匹配',
+  view_rank: '排行榜',
+}
+
+export const redeem = {
+  bulk_title: '批量生成',
+  count: '数量',
+  code_length: '兑换码长度',
+  prefix: '前缀（可选）',
+  prefix_hint: '如 GIFT，自动转大写',
+  generate: '生成',
+  result: '成功 {ok} 个，失败 {fail} 个',
+  generated_codes: '生成的兑换码',
+  prefix_too_long: '前缀长度必须小于兑换码长度',
 }
 
 export const manage = {
@@ -151,6 +183,7 @@ export const manage = {
   col_amount: '数量',
   no_items: '暂无物品',
   items_saved: '物品已更新',
+  items_remove_confirm: '将从集合中移除 {n} 个物品，确定保存？',
   items_note: '引用的物品必须已存在于物品表中。',
 }
 
@@ -158,6 +191,8 @@ export const ops = {
   title: '系统操作',
   subtitle: '由 /system/operations 暴露的维护任务，部分较重或有破坏性。',
   run_confirm: '执行操作「{name}」？',
+  all_users_confirm: '未填写用户 ID——将对所有用户执行，确定继续？',
+  danger_run_confirm: '该操作具有破坏性且不可撤销，确定执行「{name}」？',
   running: '执行中…',
   done: '操作完成',
   user_id_optional: '用户 ID（可选，留空表示所有用户）',
@@ -173,10 +208,49 @@ export const ops = {
   save_update_score_desc: '将玩家存档写入 best_score 表。',
   unlock_user_item: '解锁用户物品',
   unlock_user_item_desc: '为某个或所有用户授予 / 锁定 pack 与 single。',
+  method: '操作方式',
+  method_unlock: '解锁',
+  method_lock: '锁定',
+  item_types: '物品类型',
   delete_user_score: '删除用户成绩',
   delete_user_score_desc: '删除某用户的成绩（移入回收数据库）。',
   delete_one_user: '删除用户',
   delete_one_user_desc: '删除整个账号（移入回收数据库）。',
+}
+
+export const fields = {
+  id: 'ID',
+  name: '名称',
+  code: '兑换码',
+  type: '类型',
+  amount: '数量',
+  price: '价格',
+  orig_price: '原价',
+  discount: '折扣',
+  discount_from: '折扣开始',
+  discount_to: '折扣结束',
+  discount_reason: '折扣原因',
+  expires: '过期时间',
+  description: '描述',
+  ticket: '记忆源点',
+  joined: '注册日期',
+  ptt: 'PTT',
+  user_id: '用户 ID',
+  user_code: '好友码',
+  email: '邮箱',
+  password: '密码',
+  song_id: '曲目 ID',
+  song_name: '曲目名称',
+  item_id: '物品 ID',
+  available: '可用',
+  character_id: '角色 ID',
+  max_level: '等级上限',
+  char_type: '角色类型',
+  skill: '技能',
+  skill_uncap: '觉醒技能',
+  uncapped: '已觉醒',
+  purchase_name: '购买项名称',
+  present_id: '奖励 ID',
 }
 
 export const validate = {

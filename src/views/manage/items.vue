@@ -18,6 +18,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import PageHeader from '@/components/PageHeader.vue'
@@ -30,32 +31,32 @@ const { t } = useI18n()
 const user = userStore()
 const canWrite = user.has_power('change')
 
-const columns = [
-  { title: 'Item ID', key: 'id', ellipsis: { tooltip: true } },
-  { title: 'Type', key: 'type', width: 150 },
+const columns = computed(() => [
+  { title: t('fields.item_id'), key: 'id', ellipsis: { tooltip: true } },
+  { title: t('fields.type'), key: 'type', width: 150 },
   {
-    title: t('common.available'),
+    title: t('fields.available'),
     key: 'is_available',
     width: 130,
     render: (row) => (row.is_available ? t('common.available') : t('common.unavailable')),
   },
-]
+])
 
 const typeOptions = item_types.map((x) => ({ label: x, value: x }))
 
-const createFields = [
-  { key: 'item_id', label: 'Item ID', type: 'text', required: true },
-  { key: 'type', label: 'Type', type: 'select', options: typeOptions, default: 'single', required: true },
-  { key: 'is_available', label: t('common.available'), type: 'switch', default: true },
-]
-const editFields = [
-  { key: 'id', label: 'Item ID', type: 'text', primary: true },
-  { key: 'type', label: 'Type', type: 'text', primary: true },
-  { key: 'is_available', label: t('common.available'), type: 'switch' },
-]
+const createFields = computed(() => [
+  { key: 'item_id', label: t('fields.item_id'), type: 'text', required: true },
+  { key: 'type', label: t('fields.type'), type: 'select', options: typeOptions, default: 'single', required: true },
+  { key: 'is_available', label: t('fields.available'), type: 'switch', default: true },
+])
+const editFields = computed(() => [
+  { key: 'id', label: t('fields.item_id'), type: 'text', primary: true },
+  { key: 'type', label: t('fields.type'), type: 'text', primary: true },
+  { key: 'is_available', label: t('fields.available'), type: 'switch' },
+])
 
-const loadFn = async () => {
-  const res = await service.get('/items')
+const loadFn = async (force) => {
+  const res = await service.cachedGet('/items', null, { force })
   return res.data
 }
 

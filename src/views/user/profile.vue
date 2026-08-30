@@ -7,19 +7,37 @@
       <div class="chart-card glass">
         <div class="chart-head">
           <h3 class="font-display">{{ t('user.rating_history') }}</h3>
+          <div class="range hud">
+            <button v-for="d in [30, 90, 365]" :key="d" :class="{ on: ratingDays === d }" @click="setRange(d)">
+              {{ d }}d
+            </button>
+          </div>
         </div>
         <RatingChart :points="ratingPoints" :caption="t('user.potential')" :empty-text="t('common.no_data')" />
       </div>
     </div>
 
     <div class="b30-head">
-      <h3 class="font-display">{{ t('user.best30') }}</h3>
-      <span v-if="user.b30_ptt != null" class="hud avg">{{ t('user.b30_ptt') }} · {{ Number(user.b30_ptt).toFixed(2) }}</span>
+      <div class="segmented">
+        <button :class="{ on: tab === 'b30' }" @click="tab = 'b30'">{{ t('user.best30') }}</button>
+        <button :class="{ on: tab === 'r30' }" @click="tab = 'r30'">{{ t('user.recent30') }}</button>
+      </div>
+      <span v-if="tab === 'b30' && user.b30_ptt != null" class="hud avg">
+        {{ t('user.b30_ptt') }} · {{ Number(user.b30_ptt).toFixed(2) }}
+      </span>
+      <span v-else-if="tab === 'r30' && user.r10_ptt != null" class="hud avg">
+        {{ t('user.r10_ptt') }} · {{ Number(user.r10_ptt).toFixed(2) }}
+      </span>
     </div>
 
     <n-spin :show="loading">
-      <div v-if="user.b30_scores.length" class="b30-grid">
-        <ScoreCard v-for="(s, i) in user.b30_scores" :key="i" :score="s" :rank="i + 1" />
+      <div v-if="shownScores.length" class="b30-grid">
+        <ScoreCard
+          v-for="(s, i) in shownScores"
+          :key="tab + i"
+          :score="s"
+          :rank="tab === 'b30' ? i + 1 : null"
+        />
       </div>
       <div v-else class="empty glass hud">{{ t('common.no_data') }}</div>
     </n-spin>
@@ -43,6 +61,9 @@ const user = userStore()
 
 const loading = ref(false)
 const ratingPoints = ref([])
+const tab = ref('b30')
+
+const shownScores = computed(() => (tab.value === 'b30' ? user.b30_scores : user.r30_scores))
 
 const me = computed(() => ({
   name: user.name,
@@ -56,18 +77,34 @@ const me = computed(() => ({
   is_banned: false,
 }))
 
-onMounted(async () => {
-  loading.value = true
-  await Promise.allSettled([user.get_user_b30(), user.get_user_recent()])
-  loading.value = false
+const ratingDays = ref(30)
 
+const fetchRating = async () => {
   try {
-    const res = await service._get('/users/' + user.user_id + '/rating', { duration: 30 })
+    const res = await service._get(
+      '/users/' + user.user_id + '/rating',
+      { duration: ratingDays.value },
+      { silent: true },
+    )
     const data = (res.data.data || []).slice().sort((a, b) => a.time - b.time)
     ratingPoints.value = data.map((d) => d.rating_ptt)
   } catch (e) {
     ratingPoints.value = []
   }
+}
+
+const setRange = (d) => {
+  ratingDays.value = d
+  fetchRating()
+}
+
+onMounted(async () => {
+  loading.value = true
+  // get_user_info refreshes the persisted profile basics (name/rating/ticket)
+  // — this page is where that heavy endpoint is worth calling.
+  await Promise.allSettled([user.get_user_info(), user.get_user_b30(), user.get_user_recent()])
+  loading.value = false
+  fetchRating()
 })
 </script>
 
@@ -84,7 +121,27 @@ onMounted(async () => {
 .chart-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 8px;
+}
+.range {
+  display: inline-flex;
+  gap: 4px;
+}
+.range button {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: 'Chakra Petch', monospace;
+}
+.range button.on {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-color: var(--accent);
 }
 .chart-head h3 {
   font-size: 15px;
@@ -96,9 +153,28 @@ onMounted(async () => {
   justify-content: space-between;
   margin-bottom: 12px;
 }
-.b30-head h3 {
-  font-size: 16px;
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.segmented button {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 12px;
+  padding: 6px 13px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
   font-weight: 600;
+}
+.segmented button.on {
+  background: var(--accent-soft);
+  color: var(--text);
 }
 .avg {
   font-size: 12px;

@@ -16,6 +16,20 @@
     </n-card>
 
     <n-spin :show="loading">
+      <div v-if="results.length > 1" class="results glass">
+        <span class="hud results-cap">{{ t('song.results_n', { n: results.length }) }}</span>
+        <button
+          v-for="r in results"
+          :key="r.song_id"
+          class="result-chip"
+          :class="{ on: song && song.song_id === r.song_id }"
+          @click="selectSong(r)"
+        >
+          <b>{{ r.name || r.song_id }}</b>
+          <small class="hud">{{ r.song_id }}</small>
+        </button>
+      </div>
+
       <div v-if="song" class="song-card glass">
         <SongJacket :song-id="song.song_id" :size="104" :radius="14" :alt="song.name" />
         <div class="song-meta">
@@ -54,8 +68,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { NCard, NInput, NButton, NSpin } from 'naive-ui'
 
 import PageHeader from '@/components/PageHeader.vue'
@@ -65,7 +80,18 @@ import service from '@/plugins/axios'
 import { difficulty_short_name } from '@/config'
 
 const { t } = useI18n()
+const route = useRoute()
 const diffName = difficulty_short_name
+
+// Deep link from the song-management table: /song/search?song_id=xxx
+onMounted(() => {
+  const sid = route.query.song_id
+  if (typeof sid === 'string' && sid) {
+    mode.value = 0
+    query.value = sid
+    searchSong()
+  }
+})
 
 const mode = ref(0)
 const query = ref('')
@@ -73,6 +99,13 @@ const loading = ref(false)
 const song = ref(null)
 const selected = ref(null)
 const ranks = ref([])
+const results = ref([])
+
+const selectSong = (s) => {
+  song.value = s
+  selected.value = null
+  ranks.value = []
+}
 
 const searchSong = async () => {
   if (!query.value.trim()) return
@@ -80,10 +113,12 @@ const searchSong = async () => {
   selected.value = null
   ranks.value = []
   song.value = null
+  results.value = []
   try {
     const key = mode.value === 0 ? 'song_id' : 'name'
-    const res = await service._get('/songs', { fuzzy_query: { [key]: query.value.trim() } })
-    song.value = res.data[0]
+    const res = await service._get('/songs', { fuzzy_query: { [key]: query.value.trim() }, limit: 12 })
+    results.value = res.data
+    if (res.data.length === 1) selectSong(res.data[0])
   } catch (e) {
     /* surfaced */
   } finally {
@@ -148,6 +183,46 @@ const selectDifficulty = async (d) => {
   flex: 1;
   min-width: 180px;
 }
+.results {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.results-cap {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+.result-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12.5px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.result-chip small {
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+.result-chip:hover {
+  border-color: var(--border-strong);
+}
+.result-chip.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
 .song-card {
   display: grid;
   grid-template-columns: auto 1fr;

@@ -28,12 +28,31 @@
           </button>
         </n-dropdown>
 
-        <button
-          v-if="app.showThemeToggle"
-          class="icon-btn"
-          :aria-label="t('common.theme')"
-          @click="app.toggleTheme()"
-        >
+        <n-popover trigger="click" placement="bottom">
+          <template #trigger>
+            <button class="icon-btn" :aria-label="t('common.accent')">
+              <AppIcon name="palette" :size="19" />
+            </button>
+          </template>
+          <div style="display: grid; grid-template-columns: repeat(4, 30px); gap: 10px; padding: 4px">
+            <button
+              v-for="p in ACCENT_PRESETS"
+              :key="p.key"
+              :aria-label="p.key"
+              :style="{
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                background: p.color,
+                border: app.accent === p.color ? '2px solid var(--text)' : '2px solid transparent',
+              }"
+              @click="app.setAccent(p.color)"
+            />
+          </div>
+        </n-popover>
+
+        <button class="icon-btn" :aria-label="t('common.theme')" @click="app.toggleTheme()">
           <AppIcon :name="app.isDark ? 'sun' : 'moon'" :size="19" />
         </button>
 
@@ -59,10 +78,11 @@
 import { computed, h, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { NDrawer, NDrawerContent, NDropdown } from 'naive-ui'
+import { NDrawer, NDrawerContent, NDropdown, NPopover } from 'naive-ui'
 
 import NavRail from '@/components/NavRail.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import { ACCENT_PRESETS } from '@/plugins/theme'
 import { appStore } from '@/store/app'
 import { userStore } from '@/store/user'
 

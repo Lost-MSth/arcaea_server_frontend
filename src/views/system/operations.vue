@@ -25,6 +25,14 @@
       <n-form-item v-if="active?.needsUser || active?.requiresUser" :label="t('ops.user_id_optional')" :show-feedback="false">
         <n-input-number v-model:value="userId" style="width: 100%" :placeholder="active?.requiresUser ? 'required' : ''" />
       </n-form-item>
+      <template v-if="active?.unlockParams">
+        <n-form-item :label="t('ops.method')" :show-feedback="false" style="margin-top: 10px">
+          <n-select v-model:value="unlockMethod" :options="methodOptions" />
+        </n-form-item>
+        <n-form-item :label="t('ops.item_types')" :show-feedback="false" style="margin-top: 10px">
+          <n-select v-model:value="unlockTypes" multiple :options="unlockTypeOptions" />
+        </n-form-item>
+      </template>
       <template #footer>
         <div class="modal-foot">
           <n-button @click="show = false">{{ t('common.cancel') }}</n-button>
@@ -38,9 +46,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NSpin, NModal, NButton, NAlert, NFormItem, NInputNumber, useMessage } from 'naive-ui'
+import { NSpin, NModal, NButton, NAlert, NFormItem, NInputNumber, NSelect, useDialog, useMessage } from 'naive-ui'
 
 import PageHeader from '@/components/PageHeader.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -48,6 +56,7 @@ import service from '@/plugins/axios'
 
 const { t } = useI18n()
 const message = useMessage()
+const dialog = useDialog()
 
 // Metadata for the known operations. Any op the server reports that isn't here
 // still renders with its raw name.
@@ -57,7 +66,7 @@ const META = {
   refresh_content_bundle_cache: { icon: 'cube' },
   refresh_world_map_cache: { icon: 'globe' },
   save_update_score: { icon: 'server', needsUser: true },
-  unlock_user_item: { icon: 'cube', needsUser: true },
+  unlock_user_item: { icon: 'cube', needsUser: true, unlockParams: true },
   delete_user_score: { icon: 'trash', requiresUser: true, danger: true },
   delete_one_user: { icon: 'trash', requiresUser: true, danger: true },
 }
@@ -72,9 +81,21 @@ const running = ref(false)
 const opTitle = (name) => (name ? t('ops.' + name) : '')
 const opDesc = (name) => (name ? t('ops.' + name + '_desc') : '')
 
+const unlockMethod = ref('unlock')
+const unlockTypes = ref(['single', 'pack'])
+const methodOptions = computed(() => [
+  { label: t('ops.method_unlock'), value: 'unlock' },
+  { label: t('ops.method_lock'), value: 'lock' },
+])
+const unlockTypeOptions = ['single', 'pack', 'world_song', 'course_banner', 'world_unlock'].map(
+  (v) => ({ label: v, value: v }),
+)
+
 const openOp = (op) => {
   active.value = op
   userId.value = null
+  unlockMethod.value = 'unlock'
+  unlockTypes.value = ['single', 'pack']
   show.value = true
 }
 
@@ -83,17 +104,48 @@ const run = async () => {
     message.warning(t('validate.required'))
     return
   }
-  running.value = true
-  const body = userId.value ? { user_id: Number(userId.value) } : {}
-  try {
-    await service.post('/system/operations/' + active.value.name, body)
-    message.success(t('ops.done'))
-    show.value = false
-  } catch (e) {
-    /* surfaced */
-  } finally {
-    running.value = false
+
+  const exec = async () => {
+    running.value = true
+    const body = {}
+    if (userId.value) body.user_id = Number(userId.value)
+    if (active.value.unlockParams) {
+      body.method = unlockMethod.value
+      body.item_types = unlockTypes.value.length ? unlockTypes.value : ['single', 'pack']
+    }
+    try {
+      await service.post('/system/operations/' + active.value.name, body)
+      message.success(t('ops.done'))
+      show.value = false
+    } catch (e) {
+      /* surfaced */
+    } finally {
+      running.value = false
+    }
   }
+
+  // Second confirmation for destructive ops, and for "no user id = ALL users".
+  if (active.value.danger) {
+    dialog.warning({
+      title: t('common.confirm'),
+      content: t('ops.danger_run_confirm', { name: opTitle(active.value.name) }),
+      positiveText: t('common.ok'),
+      negativeText: t('common.cancel'),
+      onPositiveClick: exec,
+    })
+    return
+  }
+  if ((active.value.needsUser || active.value.unlockParams) && !userId.value) {
+    dialog.warning({
+      title: t('common.confirm'),
+      content: t('ops.all_users_confirm'),
+      positiveText: t('common.ok'),
+      negativeText: t('common.cancel'),
+      onPositiveClick: exec,
+    })
+    return
+  }
+  await exec()
 }
 
 onMounted(async () => {

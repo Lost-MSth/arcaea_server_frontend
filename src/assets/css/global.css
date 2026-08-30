@@ -21,8 +21,9 @@
   --accent: #8a7bff;
   --accent-2: #37dfe8;
   --accent-3: #f078c8;
-  --accent-soft: rgba(138, 123, 255, 0.16);
-  --ring: rgba(138, 123, 255, 0.55);
+  /* Derived from --accent so a user-selected accent recolors coherently. */
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+  --ring: color-mix(in srgb, var(--accent) 55%, transparent);
   --good: #57d9a3;
 
   --diff-0: #23b7ff;
@@ -31,7 +32,7 @@
   --diff-3: #e8505b;
   --diff-4: #c3aef2;
 
-  --aurora-1: rgba(138, 123, 255, 0.2);
+  --aurora-1: color-mix(in srgb, var(--accent) 20%, transparent);
   --aurora-2: rgba(55, 223, 232, 0.11);
   --aurora-3: rgba(240, 120, 200, 0.11);
   --shadow: 0 24px 48px -30px rgba(0, 0, 0, 0.85);
@@ -52,8 +53,8 @@
   --accent: #6a5bf0;
   --accent-2: #1aa7b3;
   --accent-3: #d0489f;
-  --accent-soft: rgba(106, 91, 240, 0.12);
-  --ring: rgba(106, 91, 240, 0.4);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --ring: color-mix(in srgb, var(--accent) 40%, transparent);
   --good: #2fa579;
 
   --diff-0: #0d92e0;
@@ -62,7 +63,7 @@
   --diff-3: #d63b48;
   --diff-4: #8a6fd6;
 
-  --aurora-1: rgba(106, 91, 240, 0.12);
+  --aurora-1: color-mix(in srgb, var(--accent) 12%, transparent);
   --aurora-2: rgba(55, 190, 210, 0.1);
   --aurora-3: rgba(230, 110, 190, 0.09);
   --shadow: 0 22px 44px -30px rgba(40, 50, 100, 0.4);
@@ -83,13 +84,22 @@ body,
 body {
   font-family: 'Manrope', 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The aurora lives on its own fixed, composited layer — identical look to
+   `background-attachment: fixed` without its scroll-repaint cost. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(1200px 620px at 12% -8%, var(--aurora-1), transparent 60%),
     radial-gradient(1000px 520px at 102% 2%, var(--aurora-2), transparent 55%),
-    radial-gradient(1000px 780px at 50% 118%, var(--aurora-3), transparent 62%),
-    var(--bg);
-  background-attachment: fixed;
-  -webkit-font-smoothing: antialiased;
+    radial-gradient(1000px 780px at 50% 118%, var(--aurora-3), transparent 62%);
 }
 
 .app-root {
@@ -152,6 +162,11 @@ body {
   border: 1px solid var(--border);
   border-radius: 16px;
   backdrop-filter: blur(10px);
+}
+
+/* Tabular figures inside data tables so number columns line up */
+.n-data-table {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Thin, theme-aware scrollbars */

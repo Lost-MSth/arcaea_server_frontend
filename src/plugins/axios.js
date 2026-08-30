@@ -30,6 +30,35 @@ service._get = (url, data, config = {}) =>
     ...config,
   })
 
+// ---- TTL cache for GETs -------------------------------------------------
+// Keeps repeat page visits from re-hitting the server: identical requests
+// within `ttl` share one response, and concurrent callers share one in-flight
+// promise. `force: true` (manual refresh / after mutations) bypasses and
+// replaces the entry. Failures are never cached.
+const _getCache = new Map()
+
+service.cachedGet = (url, data = null, { ttl = 60000, force = false, ...config } = {}) => {
+  const key = url + '|' + (data ? JSON.stringify(data) : '')
+  const hit = _getCache.get(key)
+  if (!force && hit && Date.now() - hit.time < ttl) {
+    return hit.promise
+  }
+  const promise = (data ? service._get(url, data, config) : service.get(url, config)).catch(
+    (e) => {
+      _getCache.delete(key)
+      throw e
+    },
+  )
+  _getCache.set(key, { time: Date.now(), promise })
+  return promise
+}
+
+service.invalidateCache = (prefix = '') => {
+  for (const k of _getCache.keys()) {
+    if (k.startsWith(prefix)) _getCache.delete(k)
+  }
+}
+
 function codeMessage(code) {
   const key = 'error.' + Math.abs(code)
   const msg = t(key)

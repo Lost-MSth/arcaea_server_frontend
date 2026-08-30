@@ -36,6 +36,8 @@
         </template>
       </template>
     </nav>
+
+    <div class="rail-ver hud">v{{ version }}</div>
   </div>
 </template>
 
@@ -65,6 +67,9 @@ const groups = computed(() => {
 })
 
 const isActive = (name) => route.name === name
+
+// Injected by Vite's `define` from package.json.
+const version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
 </script>
 
 <style scoped>
@@ -148,5 +153,11 @@ const isActive = (name) => route.name === name
 }
 .nav-item.active :deep(.n-icon) {
   color: var(--accent);
+}
+.rail-ver {
+  padding: 10px 12px 2px;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 </style>

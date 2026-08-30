@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 
-// UI preferences. `showThemeToggle` makes the light/dark switch optional —
-// set it false to hide the toggle entirely and pin the theme.
+import { DEFAULT_ACCENT } from '@/plugins/theme'
+
+// UI preferences. Light/dark mode is always available; the accent (theme
+// color) is user selectable from ACCENT_PRESETS.
 export const appStore = defineStore('app', {
   state: () => ({
     theme: 'dark',
-    showThemeToggle: true,
+    accent: DEFAULT_ACCENT,
     railCollapsed: false,
   }),
   persist: true,
@@ -15,6 +17,9 @@ export const appStore = defineStore('app', {
   actions: {
     toggleTheme() {
       this.theme = this.theme === 'dark' ? 'light' : 'dark'
+    },
+    setAccent(color) {
+      this.accent = color
     },
   },
 })

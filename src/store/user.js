@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 
-import router from '@/router'
 import { async_routes } from '@/router/permission.js'
 import axios from '@/plugins/axios'
 
@@ -46,11 +45,24 @@ export const userStore = defineStore('user', {
     r10_ptt: null,
     b30_scores: [],
     r30_scores: [],
-    routes_generated: false,
   }),
   // pinia-plugin-persistedstate v4: `paths` was renamed to `pick`.
+  // Profile basics are persisted too, so a page reload doesn't re-hit the
+  // heavy `/users/<id>` endpoint — it's refreshed on login and on the
+  // profile page instead.
   persist: {
-    pick: ['token', 'role', 'powers', 'user_id', 'user_code'],
+    pick: [
+      'token',
+      'role',
+      'powers',
+      'user_id',
+      'user_code',
+      'name',
+      'rating_ptt',
+      'ticket',
+      'join_date',
+      'character',
+    ],
   },
   getters: {
     accessed_routes() {
@@ -65,6 +77,25 @@ export const userStore = defineStore('user', {
       return this.powers.includes(power)
     },
     async get_user_info() {
+      // Prefer the lightweight `/users/<id>/brief` (single-row query, see
+      // SERVER_CHANGES.md §4.2); older servers without it fall back to the
+      // full `/users/<id>` payload.
+      try {
+        const res = await axios.get('/users/' + this.user_id + '/brief', { silent: true })
+        const d = res.data
+        this.user_code = d.user_code
+        this.name = d.name
+        this.rating_ptt = d.rating
+        this.is_hide_rating = d.is_hide_rating
+        this.ticket = d.ticket
+        this.join_date = d.join_date
+        this.character.character_id = d.character
+        this.character.is_uncapped = d.is_char_uncapped
+        this.character.is_uncapped_override = d.is_char_uncapped_override
+        return
+      } catch (e) {
+        if (!this.token) throw e // 401 already reset the session — don't retry
+      }
       const res = await axios.get('/users/' + this.user_id)
       const d = res.data
       this.user_code = d.user_code
@@ -86,13 +117,9 @@ export const userStore = defineStore('user', {
       this.role = res.data.role
       this.powers = res.data.powers
     },
-    generate_routes() {
-      if (this.routes_generated) return
-      this.accessed_routes.forEach((route) => {
-        router.addRoute('layout', route)
-      })
-      this.routes_generated = true
-    },
+    // Route registration lives in the router guard (router/index.js), which
+    // owns the real router instance — the store must not import the router
+    // back (circular dependency, and a stale instance under dev HMR).
     async get_user_b30() {
       const res = await axios.get('/users/' + this.user_id + '/b30')
       this.b30_ptt = res.data.b30_ptt

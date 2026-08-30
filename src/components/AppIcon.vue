@@ -37,6 +37,11 @@ import {
   TrophyOutline,
   SwapHorizontalOutline,
   CloseOutline,
+  ColorPaletteOutline,
+  BanOutline,
+  EyeOutline,
+  DownloadOutline,
+  CopyOutline,
 } from '@vicons/ionicons5'
 
 const map = {
@@ -71,6 +76,11 @@ const map = {
   trophy: TrophyOutline,
   swap: SwapHorizontalOutline,
   close: CloseOutline,
+  palette: ColorPaletteOutline,
+  ban: BanOutline,
+  eye: EyeOutline,
+  download: DownloadOutline,
+  copy: CopyOutline,
 }
 
 const props = defineProps({

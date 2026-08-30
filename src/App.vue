@@ -1,7 +1,7 @@
 <template>
   <n-config-provider
     :theme="app.isDark ? darkTheme : null"
-    :theme-overrides="themeOverrides"
+    :theme-overrides="overrides"
     :locale="naiveLocale"
     :date-locale="naiveDateLocale"
     class="app-root"
@@ -36,7 +36,8 @@ import {
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 
-import { themeOverrides } from '@/plugins/theme'
+import { buildThemeOverrides } from '@/plugins/theme'
+import { syncDiscreteTheme } from '@/plugins/discrete'
 import { appStore } from '@/store/app'
 
 const app = appStore()
@@ -45,10 +46,15 @@ const { locale } = useI18n()
 const naiveLocale = computed(() => (locale.value === 'zh-CN' ? zhCN : enUS))
 const naiveDateLocale = computed(() => (locale.value === 'zh-CN' ? dateZhCN : dateEnUS))
 
-// Drive the CSS variable theme (aurora background, glass, etc.) from the store.
+const overrides = computed(() => buildThemeOverrides(app.accent))
+
+// Drive the CSS-variable theme (aurora, glass, accent) and the detached
+// message API from the store.
 watchEffect(() => {
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme', app.theme)
+    document.documentElement.style.setProperty('--accent', app.accent)
   }
+  syncDiscreteTheme(app.isDark, app.accent)
 })
 </script>

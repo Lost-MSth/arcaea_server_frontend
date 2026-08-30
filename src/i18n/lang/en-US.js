@@ -66,6 +66,10 @@ export const common = {
   unavailable: 'Unavailable',
   language: 'Language',
   theme: 'Theme',
+  accent: 'Theme color',
+  copy: 'Copy',
+  copied: 'Copied',
+  export: 'Export CSV',
 }
 
 export const dashboard = {
@@ -76,9 +80,11 @@ export const dashboard = {
   server: 'Server',
   healthy: 'healthy',
   leaderboard: 'Potential leaderboard',
+  recent_users: 'Recent sign-ups',
   world_rank: 'World rank',
   no_backend: 'Cannot reach the backend. Check the server address or that the server is running.',
   live_rooms: 'Live rooms',
+  scores: 'Total scores',
 }
 
 export const user = {
@@ -97,6 +103,18 @@ export const user = {
   user_select_title: 'Search user',
   search_by: 'Search by',
   rating_history: 'Rating history',
+  manage_title: 'User management',
+  manage_subtitle: 'Filter, create and edit players. "Details" shows a player’s Best 30.',
+  detail: 'Details',
+  ban: 'Ban',
+  ban_confirm: 'Ban user "{name}"? Their password is cleared and they cannot log in until a new one is set (via Edit).',
+  banned_done: 'User banned',
+  ban_self: 'You cannot ban the account you are logged in with',
+  keep_hint: 'Leave blank to keep unchanged',
+  unban: 'Unban',
+  unban_hint: 'Set a new password for "{name}" to lift the ban:',
+  unban_done: 'User unbanned',
+  pwd_len: 'Password must be 8-32 characters',
 }
 
 export const score = {
@@ -122,6 +140,20 @@ export const song = {
   no_chart: 'N/A',
   search_by_id: 'Song ID',
   search_by_name: 'Song Name',
+  results_n: '{n} matches',
+  view_rank: 'Ranking',
+}
+
+export const redeem = {
+  bulk_title: 'Bulk generate',
+  count: 'Count',
+  code_length: 'Code length',
+  prefix: 'Prefix (optional)',
+  prefix_hint: 'e.g. GIFT — uppercased automatically',
+  generate: 'Generate',
+  result: 'Generated {ok}, failed {fail}',
+  generated_codes: 'Generated codes',
+  prefix_too_long: 'Prefix must be shorter than the code length',
 }
 
 export const manage = {
@@ -151,6 +183,7 @@ export const manage = {
   col_amount: 'Amount',
   no_items: 'No items yet',
   items_saved: 'Items updated',
+  items_remove_confirm: 'This will remove {n} item(s) from the collection. Save anyway?',
   items_note: 'The referenced item must already exist in the Items table.',
 }
 
@@ -158,6 +191,8 @@ export const ops = {
   title: 'System operations',
   subtitle: 'Maintenance jobs exposed by /system/operations. Some are heavy or destructive.',
   run_confirm: 'Run operation "{name}"?',
+  all_users_confirm: 'No user ID given — this will run for ALL users. Continue?',
+  danger_run_confirm: 'This is destructive and cannot be undone. Run "{name}"?',
   running: 'Running…',
   done: 'Operation finished',
   user_id_optional: 'User ID (optional — leave blank for all users)',
@@ -173,10 +208,49 @@ export const ops = {
   save_update_score_desc: "Write players' save data into the best-score table.",
   unlock_user_item: 'Unlock user items',
   unlock_user_item_desc: 'Grant or lock packs & singles for a user or everyone.',
+  method: 'Method',
+  method_unlock: 'Unlock',
+  method_lock: 'Lock',
+  item_types: 'Item types',
   delete_user_score: 'Delete user scores',
   delete_user_score_desc: 'Delete a user’s scores (moved to the trash DB).',
   delete_one_user: 'Delete user',
   delete_one_user_desc: 'Delete an entire account (moved to the trash DB).',
+}
+
+export const fields = {
+  id: 'ID',
+  name: 'Name',
+  code: 'Code',
+  type: 'Type',
+  amount: 'Amount',
+  price: 'Price',
+  orig_price: 'Original price',
+  discount: 'Discount',
+  discount_from: 'Discount from',
+  discount_to: 'Discount to',
+  discount_reason: 'Discount reason',
+  expires: 'Expires',
+  description: 'Description',
+  ticket: 'Memories',
+  joined: 'Joined',
+  ptt: 'PTT',
+  user_id: 'User ID',
+  user_code: 'User Code',
+  email: 'Email',
+  password: 'Password',
+  song_id: 'Song ID',
+  song_name: 'Song Name',
+  item_id: 'Item ID',
+  available: 'Available',
+  character_id: 'Character ID',
+  max_level: 'Max level',
+  char_type: 'Char type',
+  skill: 'Skill',
+  skill_uncap: 'Skill (uncap)',
+  uncapped: 'Uncapped',
+  purchase_name: 'Purchase name',
+  present_id: 'Present ID',
 }
 
 export const validate = {

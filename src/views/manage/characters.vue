@@ -37,36 +37,54 @@ const { t } = useI18n()
 const user = userStore()
 const canWrite = user.has_power('change')
 
-const columns = [
-  { title: 'ID', key: 'character_id', width: 70 },
-  { title: 'Name', key: 'name', ellipsis: { tooltip: true } },
-  { title: 'Max Lv', key: 'max_level', width: 90 },
-  { title: 'Skill', key: 'skill_id', ellipsis: { tooltip: true }, render: (r) => r.skill_id || '—' },
-  { title: 'Uncapped', key: 'is_uncapped', width: 100, render: (r) => (r.is_uncapped ? t('common.yes') : t('common.no')) },
-]
+const columns = computed(() => [
+  { title: t('fields.id'), key: 'character_id', width: 70 },
+  { title: t('fields.name'), key: 'name', ellipsis: { tooltip: true } },
+  { title: t('fields.max_level'), key: 'max_level', width: 100, align: 'right' },
+  { title: t('fields.skill'), key: 'skill_id', ellipsis: { tooltip: true }, render: (r) => r.skill_id || '—' },
+  { title: t('fields.uncapped'), key: 'is_uncapped', width: 100, render: (r) => (r.is_uncapped ? t('common.yes') : t('common.no')) },
+])
 
-const editFields = [
-  { key: 'character_id', label: 'Character ID', type: 'number', primary: true },
-  { key: 'name', label: 'Name', type: 'text', primary: true },
-  { key: 'max_level', label: 'Max level', type: 'number' },
-  { key: 'char_type', label: 'Char type', type: 'number' },
-  { key: 'is_uncapped', label: 'Uncapped', type: 'switch' },
-  { key: 'skill_id', label: 'Skill ID', type: 'text' },
-  { key: 'skill_id_uncap', label: 'Skill ID (uncap)', type: 'text' },
-]
+const editFields = computed(() => [
+  { key: 'character_id', label: t('fields.character_id'), type: 'number', primary: true },
+  { key: 'name', label: t('fields.name'), type: 'text', primary: true },
+  { key: 'max_level', label: t('fields.max_level'), type: 'number' },
+  { key: 'char_type', label: t('fields.char_type'), type: 'number' },
+  { key: 'is_uncapped', label: t('fields.uncapped'), type: 'switch' },
+  { key: 'skill_id', label: t('fields.skill'), type: 'text' },
+  { key: 'skill_id_uncap', label: t('fields.skill_uncap'), type: 'text' },
+  // Growth curve values at Lv1 / Lv20 / Lv30 (FRAG / PROG / OVERDRIVE are the
+  // in-game terms; kept untranslated on purpose).
+  { key: 'frag1', label: 'FRAG Lv1', type: 'number' },
+  { key: 'prog1', label: 'PROG Lv1', type: 'number' },
+  { key: 'overdrive1', label: 'OVER Lv1', type: 'number' },
+  { key: 'frag20', label: 'FRAG Lv20', type: 'number' },
+  { key: 'prog20', label: 'PROG Lv20', type: 'number' },
+  { key: 'overdrive20', label: 'OVER Lv20', type: 'number' },
+  { key: 'frag30', label: 'FRAG Lv30', type: 'number' },
+  { key: 'prog30', label: 'PROG Lv30', type: 'number' },
+  { key: 'overdrive30', label: 'OVER Lv30', type: 'number' },
+])
 
-const loadFn = async () => {
-  const res = await service.get('/characters')
+const loadFn = async (force) => {
+  const res = await service.cachedGet('/characters', null, { force })
   return res.data
 }
-const onEdit = (model, row) =>
-  service.put('/characters/' + row.character_id, {
+const STAT_KEYS = ['frag1', 'prog1', 'overdrive1', 'frag20', 'prog20', 'overdrive20', 'frag30', 'prog30', 'overdrive30']
+
+const onEdit = (model, row) => {
+  const payload = {
     max_level: Number(model.max_level),
     char_type: Number(model.char_type),
     is_uncapped: model.is_uncapped ? 1 : 0,
     skill_id: model.skill_id || '',
     skill_id_uncap: model.skill_id_uncap || '',
+  }
+  STAT_KEYS.forEach((k) => {
+    payload[k] = Number(model[k])
   })
+  return service.put('/characters/' + row.character_id, payload)
+}
 
 // ---- awakening cores ----
 const coresShow = ref(false)

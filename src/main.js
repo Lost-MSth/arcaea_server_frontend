@@ -1,5 +1,18 @@
 import { createApp } from 'vue'
 
+// Self-hosted fonts — bundled locally so they load same-origin (no Google
+// Fonts dependency; reliable offline and in mainland China).
+import '@fontsource/sora/500.css'
+import '@fontsource/sora/600.css'
+import '@fontsource/sora/700.css'
+import '@fontsource/manrope/400.css'
+import '@fontsource/manrope/500.css'
+import '@fontsource/manrope/600.css'
+import '@fontsource/manrope/700.css'
+import '@fontsource/chakra-petch/500.css'
+import '@fontsource/chakra-petch/600.css'
+import '@fontsource/chakra-petch/700.css'
+
 import App from './App.vue'
 import i18n from './i18n'
 import router from './router'

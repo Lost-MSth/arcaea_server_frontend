@@ -12,13 +12,16 @@
       :on-create="onCreate"
       :on-edit="onEdit"
       :on-delete="onDelete"
-      :scroll-x="820"
+      :extra-actions="rowActions"
+      :scroll-x="880"
     />
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import PageHeader from '@/components/PageHeader.vue'
 import CrudTable from '@/components/CrudTable.vue'
@@ -27,8 +30,18 @@ import { difficulty_short_name } from '@/config'
 import { userStore } from '@/store/user'
 
 const { t } = useI18n()
+const router = useRouter()
 const user = userStore()
 const canWrite = user.has_power('change')
+
+// Jump straight to this song's leaderboard on the search page.
+const rowActions = computed(() => [
+  {
+    key: 'rank',
+    label: t('song.view_rank'),
+    onClick: (row) => router.push({ path: '/song/search', query: { song_id: row.song_id } }),
+  },
+])
 
 const ccKeys = [0, 1, 2, 3, 4]
 
@@ -37,26 +50,27 @@ const ccRender = (key) => (row) => {
   return v >= 0 ? Number(v).toFixed(1) : '—'
 }
 
-const columns = [
-  { title: 'Song ID', key: 'song_id', width: 170, ellipsis: { tooltip: true } },
-  { title: 'Name', key: 'name', ellipsis: { tooltip: true } },
+const columns = computed(() => [
+  { title: t('fields.song_id'), key: 'song_id', width: 170, ellipsis: { tooltip: true } },
+  { title: t('fields.song_name'), key: 'name', ellipsis: { tooltip: true } },
   ...ccKeys.map((i) => ({
     title: difficulty_short_name[i],
     key: 'cc' + i,
     width: 78,
+    align: 'right',
     render: ccRender('cc' + i),
   })),
-]
+])
 
-const fields = [
-  { key: 'song_id', label: 'Song ID', type: 'text', required: true, primary: true },
-  { key: 'name', label: 'Song Name', type: 'text' },
+const fields = computed(() => [
+  { key: 'song_id', label: t('fields.song_id'), type: 'text', required: true, primary: true },
+  { key: 'name', label: t('fields.song_name'), type: 'text' },
   ...ccKeys.map((i) => ({ key: 'cc' + i, label: difficulty_short_name[i] + ' CC', type: 'number', default: -1 })),
-]
+])
 const editFields = fields
 
-const loadFn = async () => {
-  const res = await service.get('/songs')
+const loadFn = async (force) => {
+  const res = await service.cachedGet('/songs', null, { force })
   return res.data.map((item) => {
     const cc = [-1, -1, -1, -1, -1]
     ;(item.charts || []).forEach((c) => {

@@ -45,25 +45,25 @@ const insertable = canWrite
 const editable = canWrite
 const deletable = canWrite
 
-const columns = [
-  { title: 'Present ID', key: 'present_id', ellipsis: { tooltip: true } },
-  { title: 'Expires', key: 'expire_ts', width: 180, render: (r) => (r.expire_ts ? dayjs(r.expire_ts).format('YYYY-MM-DD HH:mm') : '—') },
-  { title: 'Description', key: 'description', ellipsis: { tooltip: true }, render: (r) => r.description || '—' },
-]
+const columns = computed(() => [
+  { title: t('fields.present_id'), key: 'present_id', ellipsis: { tooltip: true } },
+  { title: t('fields.expires'), key: 'expire_ts', width: 180, render: (r) => (r.expire_ts ? dayjs(r.expire_ts).format('YYYY-MM-DD HH:mm') : '—') },
+  { title: t('fields.description'), key: 'description', ellipsis: { tooltip: true }, render: (r) => r.description || '—' },
+])
 
-const createFields = [
-  { key: 'present_id', label: 'Present ID', type: 'text', required: true },
-  { key: 'expire_ts', label: 'Expires', type: 'datetime', required: true },
-  { key: 'description', label: 'Description', type: 'textarea' },
-]
-const editFields = [
-  { key: 'present_id', label: 'Present ID', type: 'text', primary: true },
-  { key: 'expire_ts', label: 'Expires', type: 'datetime' },
-  { key: 'description', label: 'Description', type: 'textarea' },
-]
+const createFields = computed(() => [
+  { key: 'present_id', label: t('fields.present_id'), type: 'text', required: true },
+  { key: 'expire_ts', label: t('fields.expires'), type: 'datetime', required: true },
+  { key: 'description', label: t('fields.description'), type: 'textarea' },
+])
+const editFields = computed(() => [
+  { key: 'present_id', label: t('fields.present_id'), type: 'text', primary: true },
+  { key: 'expire_ts', label: t('fields.expires'), type: 'datetime' },
+  { key: 'description', label: t('fields.description'), type: 'textarea' },
+])
 
-const loadFn = async () => {
-  const res = await service.get('/presents')
+const loadFn = async (force) => {
+  const res = await service.cachedGet('/presents', null, { force })
   return res.data
 }
 const onCreate = (model) =>

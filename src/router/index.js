@@ -34,7 +34,12 @@ router.beforeEach(async (to) => {
   const user = userStore()
 
   if (!user.token) {
-    return to.name === 'login' ? true : { name: 'login' }
+    if (to.name === 'login') return true
+    // Remember where the user was headed so login can send them back.
+    return {
+      name: 'login',
+      query: to.fullPath && to.fullPath !== '/' ? { redirect: to.fullPath } : undefined,
+    }
   }
 
   try {
@@ -48,7 +53,13 @@ router.beforeEach(async (to) => {
   // half-authenticated dashboard.
   if (!user.token) return { name: 'login' }
 
-  user.generate_routes()
+  // Register permission-gated routes idempotently on every navigation —
+  // this guard owns the real router instance.
+  user.accessed_routes.forEach((route) => {
+    if (!router.hasRoute(route.name)) {
+      router.addRoute('layout', route)
+    }
+  })
 
   if (to.name === 'login') return { name: 'dashboard' }
 
@@ -60,6 +71,18 @@ router.beforeEach(async (to) => {
   }
 
   return true
+})
+
+// After a redeploy, stale clients may fail to lazy-load renamed (hashed)
+// chunks. Reload once to pick up the new build instead of a broken page.
+let reloadedForChunkError = false
+router.onError((err) => {
+  if (reloadedForChunkError) return
+  const msg = String((err && err.message) || err)
+  if (/Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg)) {
+    reloadedForChunkError = true
+    location.reload()
+  }
 })
 
 export default router
