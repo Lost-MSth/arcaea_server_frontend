@@ -4,6 +4,7 @@
     <CrudTable
       :columns="columns"
       :load-fn="loadFn"
+      cache-prefix="/presents"
       :row-key="(r) => r.present_id"
       :search-keys="['present_id', 'description']"
       :can-write="canWrite"
@@ -72,11 +73,12 @@ const onCreate = (model) =>
     expire_ts: Number(model.expire_ts),
     description: model.description || '',
   })
-const onEdit = (model, row) =>
-  service.put('/presents/' + row.present_id, {
-    expire_ts: Number(model.expire_ts),
-    description: model.description || '',
-  })
+const onEdit = (model, row, changed) => {
+  const payload = {}
+  if ('expire_ts' in changed) payload.expire_ts = Number(changed.expire_ts)
+  if ('description' in changed) payload.description = changed.description || ''
+  return service.put('/presents/' + row.present_id, payload)
+}
 const onDelete = (rows) => Promise.all(rows.map((r) => service.delete('/presents/' + r.present_id)))
 
 // ---- nested items ----

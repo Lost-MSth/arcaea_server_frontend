@@ -189,3 +189,28 @@ body::before {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Shared tooltip (plugins/tip.js) — one element for the whole app. */
+.app-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 4000;
+  pointer-events: none;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+.has-tip {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+  cursor: default;
+}

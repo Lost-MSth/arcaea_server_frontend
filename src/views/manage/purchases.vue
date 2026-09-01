@@ -4,6 +4,7 @@
     <CrudTable
       :columns="columns"
       :load-fn="loadFn"
+      cache-prefix="/purchases"
       :row-key="(r) => r.name"
       :search-keys="['name', 'discount_reason']"
       :can-write="canWrite"
@@ -76,15 +77,16 @@ const onCreate = (model) => {
   if (model.discount_to) payload.discount_to = Number(model.discount_to)
   return service.post('/purchases', payload)
 }
-const onEdit = (model, row) =>
-  service.put('/purchases/' + row.name, {
-    orig_price: Number(model.orig_price),
-    price: Number(model.price),
-    discount_reason: model.discount_reason || '',
+const onEdit = (model, row, changed) => {
+  const payload = {}
+  Object.entries(changed).forEach(([k, v]) => {
+    if (k === 'orig_price' || k === 'price') payload[k] = Number(v)
+    else if (k === 'discount_reason') payload[k] = v || ''
     // -1 = no discount window (server convention)
-    discount_from: model.discount_from ? Number(model.discount_from) : -1,
-    discount_to: model.discount_to ? Number(model.discount_to) : -1,
+    else if (k === 'discount_from' || k === 'discount_to') payload[k] = v ? Number(v) : -1
   })
+  return service.put('/purchases/' + row.name, payload)
+}
 const onDelete = (rows) => Promise.all(rows.map((r) => service.delete('/purchases/' + r.name)))
 
 // ---- nested items ----

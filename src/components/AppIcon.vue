@@ -43,6 +43,9 @@ import {
   EyeOutline,
   DownloadOutline,
   CopyOutline,
+  LayersOutline,
+  LockClosedOutline,
+  OptionsOutline,
 } from '@vicons/ionicons5'
 
 const map = {
@@ -83,6 +86,9 @@ const map = {
   eye: EyeOutline,
   download: DownloadOutline,
   copy: CopyOutline,
+  layers: LayersOutline,
+  lock: LockClosedOutline,
+  options: OptionsOutline,
 }
 
 const props = defineProps({

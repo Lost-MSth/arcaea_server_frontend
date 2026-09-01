@@ -6,6 +6,7 @@
       ref="tableRef"
       :columns="columns"
       :load-fn="loadFn"
+      cache-prefix="/users"
       :row-key="(r) => r.user_id"
       :search-keys="['name', 'user_code', 'user_id']"
       :can-write="canWrite"
@@ -27,22 +28,13 @@
       </div>
       <n-spin :show="detailLoading">
         <div class="top-grid">
-          <UserCard :user="target" />
+          <UserCard :user="target" :weights="weights" />
           <div class="chart-card glass">
             <h3 class="font-display chart-title">{{ t('user.rating_history') }}</h3>
             <RatingChart :points="ratingPoints" :caption="t('user.potential')" :empty-text="t('common.no_data')" />
           </div>
         </div>
-        <div class="b30-head">
-          <h4 class="font-display">{{ t('user.best30') }}</h4>
-          <span v-if="target.b30_ptt != null" class="hud avg">
-            {{ t('user.b30_ptt') }} · {{ Number(target.b30_ptt).toFixed(2) }}
-          </span>
-        </div>
-        <div v-if="target.b30_scores && target.b30_scores.length" class="b30-grid">
-          <ScoreCard v-for="(s, i) in target.b30_scores" :key="i" :score="s" :rank="i + 1" />
-        </div>
-        <div v-else class="empty glass hud">{{ t('common.no_data') }}</div>
+        <UserScoresTable :user-id="target.user_id" />
       </n-spin>
     </template>
   </div>
@@ -56,12 +48,13 @@ import { NButton, NInput, NSpin, NTag, useDialog, useMessage } from 'naive-ui'
 import PageHeader from '@/components/PageHeader.vue'
 import CrudTable from '@/components/CrudTable.vue'
 import UserCard from '@/components/UserCard.vue'
-import ScoreCard from '@/components/ScoreCard.vue'
 import RatingChart from '@/components/RatingChart.vue'
+import UserScoresTable from '@/components/UserScoresTable.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import service from '@/plugins/axios'
 import dayjs from '@/plugins/day'
 import { userStore } from '@/store/user'
+import { fetchPttWeights, fetchUserScores } from '@/composables/useUserScores'
 
 const { t } = useI18n()
 const dialog = useDialog()
@@ -86,7 +79,7 @@ const columns = computed(() => [
         : r.name,
   },
   { title: t('fields.user_code'), key: 'user_code', width: 130, render: (r) => h('span', { class: 'hud' }, r.user_code) },
-  { title: t('fields.ptt'), key: 'rating_ptt', width: 90, align: 'right', render: (r) => Number(r.rating_ptt ?? 0).toFixed(2) },
+  { title: t('fields.ptt'), key: 'rating_ptt', width: 90, align: 'right', render: (r) => Number(r.rating_ptt ?? 0).toFixed(3) },
   { title: t('fields.ticket'), key: 'ticket', width: 110, align: 'right' },
   {
     title: t('fields.joined'),
@@ -116,21 +109,30 @@ const loadFn = async (force) => {
   return res.data
 }
 
-const onCreate = (model) =>
-  service.post('/users', { name: model.name, password: model.password, email: model.email })
+// Create returns only { user_id, user_code }; fetch the brief row so the
+// table can show the new user completely without reloading the list.
+const onCreate = async (model) => {
+  const res = await service.post('/users', { name: model.name, password: model.password, email: model.email })
+  try {
+    const b = await service.get('/users/' + res.data.user_id + '/brief', { silent: true })
+    return b.data
+  } catch (e) {
+    return { user_id: res.data.user_id, user_code: res.data.user_code, name: model.name, email: model.email }
+  }
+}
 
 // Send ONLY fields that actually changed: the server's uniqueness checks for
 // name/user_code don't exclude the user themselves, so re-sending an unchanged
 // value fails with "Username exists" / "User code exists". Blank password/email
 // mean "keep unchanged" (an empty password would BAN — that's the Ban action).
-const onEdit = (model, row) => {
+const onEdit = (model, row, changed) => {
   const payload = {}
-  if (model.name && model.name !== row.name) payload.name = model.name
-  if (model.user_code && model.user_code !== row.user_code) payload.user_code = model.user_code
-  if (Number(model.ticket) !== Number(row.ticket)) payload.ticket = Number(model.ticket)
-  if (model.password) payload.password = model.password
-  if (model.email) payload.email = model.email
-  if (!Object.keys(payload).length) return Promise.resolve({ code: 0 })
+  if (changed.name) payload.name = changed.name
+  if (changed.user_code) payload.user_code = changed.user_code
+  if ('ticket' in changed) payload.ticket = Number(changed.ticket)
+  if (changed.password) payload.password = changed.password
+  if (changed.email) payload.email = changed.email
+  if (!Object.keys(payload).length) return Promise.resolve({ code: 0, data: {} })
   return service.put('/users/' + row.user_id, payload)
 }
 
@@ -159,23 +161,25 @@ const rowActions = computed(() => {
   return acts
 })
 
-// ---- detail (Best 30 + rating history) ----
+// ---- detail (Best 50 + PTT components + rating history) ----
 const target = ref(null)
 const ratingPoints = ref([])
 const detailLoading = ref(false)
+const weights = ref(null)
 
 const openDetail = async (row) => {
-  target.value = { ...row, b30_ptt: null, b30_scores: [] }
+  target.value = { ...row, b50_ptt: null, b30_ptt: null, b10_ptt: null, r10_ptt: null, best_scores: [] }
   ratingPoints.value = []
   detailLoading.value = true
   nextTick(() => document.querySelector('.detail-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  const [b30, rating] = await Promise.allSettled([
-    service.cachedGet(`/users/${row.user_id}/b30`, null, { silent: true }),
+  if (!weights.value) fetchPttWeights().then((w) => (weights.value = w))
+  const [scores, rating] = await Promise.allSettled([
+    fetchUserScores(row.user_id, { silent: true, songMeta: true }),
     service.cachedGet(`/users/${row.user_id}/rating`, { duration: 90 }, { silent: true }),
   ])
-  if (b30.status === 'fulfilled') {
-    target.value.b30_ptt = b30.value.data.b30_ptt
-    target.value.b30_scores = b30.value.data.data
+  if (scores.status === 'fulfilled') {
+    const r = scores.value
+    Object.assign(target.value, { best_scores: r.scores, b50_ptt: r.b50, b30_ptt: r.b30, b10_ptt: r.b10, r10_ptt: r.r10 })
   }
   if (rating.status === 'fulfilled') {
     const d = (rating.value.data.data || []).slice().sort((a, b) => a.time - b.time)
@@ -199,7 +203,8 @@ const confirmBan = (row) => {
       try {
         await service.put('/users/' + row.user_id, { password: '' })
         message.success(t('user.banned_done'))
-        tableRef.value?.reload(true)
+        row.is_banned = true
+        service.invalidateCache('/users')
       } catch (e) {
         /* surfaced by interceptor */
       }
@@ -233,7 +238,8 @@ const confirmUnban = (row) => {
       try {
         await service.put('/users/' + row.user_id, { password: pwd.value })
         message.success(t('user.unban_done'))
-        tableRef.value?.reload(true)
+        row.is_banned = false
+        service.invalidateCache('/users')
       } catch (e) {
         /* surfaced by interceptor */
       }

@@ -14,7 +14,13 @@
     </div>
 
     <nav class="nav-scroll">
-      <RouterLink class="nav-item" :class="{ active: isActive('dashboard') }" to="/dashboard" @click="emit('navigate')">
+      <RouterLink
+        v-if="user.has_power('select')"
+        class="nav-item"
+        :class="{ active: isActive('dashboard') }"
+        to="/dashboard"
+        @click="emit('navigate')"
+      >
         <AppIcon name="grid" :size="18" />
         <span>{{ t('route.dashboard') }}</span>
       </RouterLink>

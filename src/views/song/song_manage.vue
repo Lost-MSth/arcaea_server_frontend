@@ -4,6 +4,7 @@
     <CrudTable
       :columns="columns"
       :load-fn="loadFn"
+      cache-prefix="/songs"
       :row-key="(r) => r.song_id"
       :search-keys="['song_id', 'name']"
       :can-write="canWrite"
@@ -69,33 +70,37 @@ const fields = computed(() => [
 ])
 const editFields = fields
 
+// API song -> flat table row (cc0..cc4 = chart constants per difficulty).
+const mapSong = (item) => {
+  const cc = [-1, -1, -1, -1, -1]
+  ;(item.charts || []).forEach((c) => {
+    cc[c.difficulty] = c.chart_const
+  })
+  return { song_id: item.song_id, name: item.name, cc0: cc[0], cc1: cc[1], cc2: cc[2], cc3: cc[3], cc4: cc[4] }
+}
+
 const loadFn = async (force) => {
   const res = await service.cachedGet('/songs', null, { force })
-  return res.data.map((item) => {
-    const cc = [-1, -1, -1, -1, -1]
-    ;(item.charts || []).forEach((c) => {
-      cc[c.difficulty] = c.chart_const
-    })
-    return {
-      song_id: item.song_id,
-      name: item.name,
-      cc0: cc[0],
-      cc1: cc[1],
-      cc2: cc[2],
-      cc3: cc[3],
-      cc4: cc[4],
-    }
-  })
+  return res.data.map(mapSong)
 }
 
 const buildCharts = (model) =>
   ccKeys.map((i) => ({ difficulty: i, chart_const: Number(model['cc' + i]) }))
 
+// Handlers return the mapped row so the table can apply it locally.
 const onCreate = (model) =>
-  service.post('/songs', { song_id: model.song_id, name: model.name, charts: buildCharts(model) })
+  service
+    .post('/songs', { song_id: model.song_id, name: model.name, charts: buildCharts(model) })
+    .then((res) => mapSong(res.data))
 
-const onEdit = (model, row) =>
-  service.put('/songs/' + row.song_id, { name: model.name, charts: buildCharts(model) })
+const onEdit = (model, row, changed) => {
+  const payload = {}
+  if ('name' in changed) payload.name = model.name
+  // the server merges charts per difficulty — send only the changed ones
+  const diffs = ccKeys.filter((i) => 'cc' + i in changed)
+  if (diffs.length) payload.charts = diffs.map((i) => ({ difficulty: i, chart_const: Number(model['cc' + i]) }))
+  return service.put('/songs/' + row.song_id, payload).then((res) => mapSong(res.data))
+}
 
 const onDelete = (rows) => Promise.all(rows.map((r) => service.delete('/songs/' + r.song_id)))
 </script>

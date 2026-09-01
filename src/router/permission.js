@@ -6,7 +6,7 @@ export const async_routes = [
     path: '/user/profile',
     name: 'profile',
     component: () => import('@/views/user/profile.vue'),
-    meta: { title: 'profile', icon: 'person', group: 'player', powers: ['select_me'] },
+    meta: { title: 'profile', icon: 'person', group: 'player', powers: ['select_me'], needsUser: true },
   },
   {
     path: '/user/users',
@@ -67,5 +67,17 @@ export const async_routes = [
     name: 'operations',
     component: () => import('@/views/system/operations.vue'),
     meta: { title: 'operations', icon: 'settings', group: 'system', powers: ['system'] },
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/views/settings.vue'),
+    meta: { title: 'settings', icon: 'options', group: 'system' },
+  },
+  {
+    path: '/system/cache',
+    name: 'cache',
+    component: () => import('@/views/system/cache.vue'),
+    meta: { title: 'cache', icon: 'layers', group: 'system', powers: ['select'] },
   },
 ]

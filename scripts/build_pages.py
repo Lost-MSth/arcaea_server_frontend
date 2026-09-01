@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Assemble a Cloudflare Pages deploy directory: built frontend + optional
 # image assets (character icons + one best jacket per song, dl_ prefix
-# stripped, charts/audio never copied). Run `npm run build` first.
+# stripped, charts/audio never copied, images downscaled for the web unless
+# --no-optimize). Run `npm run build` first.
 #
 #   python3 scripts/build_pages.py --songs <songs_dir> --char <char_dir> \
 #       [--api https://your-server/api/v1] [--out tmp/pages_deploy]
@@ -22,7 +23,36 @@ p.add_argument('--songs', help='raw songs dir (dl_ prefixes ok; only *base_256.j
 p.add_argument('--char', help='raw char dir (only *_icon.png copied)')
 p.add_argument('--api', help="backend address to pin, e.g. https://host/api/v1")
 p.add_argument('--out', default=os.path.join(ROOT, 'tmp/pages_deploy'))
+p.add_argument('--no-optimize', action='store_true',
+               help='copy images untouched (default: jackets -> 208px JPEG q82, icons -> 8-bit PNG)')
 args = p.parse_args()
+
+try:
+    from PIL import Image  # optional: pip install pillow
+except ImportError:  # pragma: no cover
+    Image = None
+OPTIMIZE = not args.no_optimize and Image is not None
+if not args.no_optimize and Image is None:
+    print('pillow not installed — copying images unoptimized')
+
+
+def put_jacket(src, dst):
+    # Cards show jackets at 60-104 CSS px; 208px covers 2x displays at ~12 KB
+    # instead of the raw 384px / ~85 KB files.
+    if not OPTIMIZE:
+        shutil.copy2(src, dst)
+        return
+    im = Image.open(src).convert('RGB')
+    im.thumbnail((208, 208), Image.LANCZOS)
+    im.save(dst, 'JPEG', quality=82, optimize=True, progressive=True)
+
+
+def put_icon(src, dst):
+    if not OPTIMIZE:
+        shutil.copy2(src, dst)
+        return
+    im = Image.open(src).convert('RGBA')
+    im.quantize(colors=256, method=2).save(dst, 'PNG', optimize=True)
 
 dist = os.path.join(ROOT, 'dist')
 if not os.path.isfile(os.path.join(dist, 'index.html')):
@@ -52,7 +82,7 @@ if args.char:
     os.makedirs(cdst)
     for f in os.listdir(args.char):
         if f.endswith('_icon.png') and os.path.isfile(os.path.join(args.char, f)):
-            shutil.copy2(os.path.join(args.char, f), os.path.join(cdst, f))
+            put_icon(os.path.join(args.char, f), os.path.join(cdst, f))
             n_char += 1
 
 # ---- song jackets ---------------------------------------------------------
@@ -76,7 +106,7 @@ if args.songs:
             no_jacket.append(name)
             continue
         os.makedirs(dst)
-        shutil.copy2(os.path.join(src, pick), os.path.join(dst, pick))
+        put_jacket(os.path.join(src, pick), os.path.join(dst, pick))
         n_song += 1
 
 # ---- Pages cache headers --------------------------------------------------

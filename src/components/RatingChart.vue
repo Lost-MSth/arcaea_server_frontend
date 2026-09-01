@@ -26,8 +26,8 @@
       <!-- gridlines + y labels -->
       <g>
         <template v-for="tk in yTicks" :key="tk.v">
-          <line :x1="0" :y1="tk.y" :x2="w" :y2="tk.y" stroke="var(--border)" stroke-width="1" />
-          <text :x="4" :y="tk.y - 4" class="lbl">{{ tk.label }}</text>
+          <line :x1="padLeft" :y1="tk.y" :x2="w" :y2="tk.y" stroke="var(--border)" stroke-width="1" />
+          <text :x="padLeft - 6" :y="tk.y + 3.5" class="lbl" text-anchor="end">{{ tk.label }}</text>
         </template>
       </g>
 
@@ -167,14 +167,22 @@ const yTicks = computed(() => {
   return out
 })
 
+// Left gutter sized to the widest y label so labels never sit on the plot.
+const padLeft = computed(() => {
+  const len = Math.max(3, ...yTicks.value.map((t) => t.label.length))
+  return Math.round(len * 6.3) + 12
+})
+const padRight = 12
+
 // X: proportional to real time when available, index-based otherwise.
 const hasTime = computed(() => pts.value.every((p) => p.time != null))
 const xOf = (p, i) => {
   const list = pts.value
+  const span = w.value - padLeft.value - padRight
   if (hasTime.value && list[list.length - 1].time !== list[0].time) {
-    return ((p.time - list[0].time) / (list[list.length - 1].time - list[0].time)) * (w.value - 14) + 4
+    return padLeft.value + ((p.time - list[0].time) / (list[list.length - 1].time - list[0].time)) * span
   }
-  return (i / (list.length - 1)) * (w.value - 14) + 4
+  return padLeft.value + (i / (list.length - 1)) * span
 }
 
 const coords = computed(() => pts.value.map((p, i) => ({ x: xOf(p, i), y: yOf(p.value) })))
@@ -204,14 +212,14 @@ const xTicks = computed(() => {
   // axis, not a datapoint — with uneven play days they differ).
   const tMid = (list[0].time + list[list.length - 1].time) / 2
   return [
-    { x: 4, anchor: 'start', label: fmtDate(list[0].time) },
-    { x: w.value / 2, anchor: 'middle', label: fmtDate(tMid) },
+    { x: padLeft.value, anchor: 'start', label: fmtDate(list[0].time) },
+    { x: (padLeft.value + w.value) / 2, anchor: 'middle', label: fmtDate(tMid) },
     { x: w.value - 4, anchor: 'end', label: fmtDate(list[list.length - 1].time) },
   ]
 })
 
 const lastText = computed(() =>
-  pts.value.length ? pts.value[pts.value.length - 1].value.toFixed(2) : '—',
+  pts.value.length ? pts.value[pts.value.length - 1].value.toFixed(3) : '—',
 )
 
 // Range delta: what actually happened over the visible window.
@@ -223,7 +231,7 @@ const delta = computed(() => {
 const deltaText = computed(() => {
   if (delta.value === null) return ''
   const d = delta.value
-  return (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(2)
+  return (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(3)
 })
 const deltaCls = computed(() =>
   delta.value === null || Math.abs(delta.value) < 0.005 ? 'flat' : delta.value > 0 ? 'up' : 'down',
@@ -250,7 +258,7 @@ const onMove = (e) => {
     x: c[best].x,
     y: c[best].y,
     date: fmtDate(p.time, true),
-    value: p.value.toFixed(2),
+    value: p.value.toFixed(3),
   }
 }
 

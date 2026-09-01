@@ -21,6 +21,7 @@ import i18n from './i18n'
 import router from './router'
 import store from './store'
 import service from './plugins/axios'
+import { vTip } from './plugins/tip'
 import './assets/css/global.css'
 
 const app = createApp(App)
@@ -29,5 +30,6 @@ app.provide('$axios', service)
 app.use(store)
 app.use(router)
 app.use(i18n)
+app.directive('tip', vTip)
 
 app.mount('#app')

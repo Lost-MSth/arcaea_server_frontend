@@ -54,7 +54,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import service from '@/plugins/axios'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -78,8 +78,9 @@ const active = ref(null)
 const userId = ref(null)
 const running = ref(false)
 
-const opTitle = (name) => (name ? t('ops.' + name) : '')
-const opDesc = (name) => (name ? t('ops.' + name + '_desc') : '')
+// Ops the server adds later than this build still render: raw name, no blurb.
+const opTitle = (name) => (name ? (te('ops.' + name) ? t('ops.' + name) : name) : '')
+const opDesc = (name) => (name && te('ops.' + name + '_desc') ? t('ops.' + name + '_desc') : '')
 
 const unlockMethod = ref('unlock')
 const unlockTypes = ref(['single', 'pack'])

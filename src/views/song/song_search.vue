@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { NCard, NInput, NButton, NSpin } from 'naive-ui'
@@ -84,14 +84,21 @@ const route = useRoute()
 const diffName = difficulty_short_name
 
 // Deep link from the song-management table: /song/search?song_id=xxx
-onMounted(() => {
-  const sid = route.query.song_id
+// (also re-run when only the query changes — same route, no remount).
+const applyDeepLink = (sid) => {
   if (typeof sid === 'string' && sid) {
     mode.value = 0
     query.value = sid
     searchSong()
   }
-})
+}
+onMounted(() => applyDeepLink(route.query.song_id))
+watch(
+  () => route.query.song_id,
+  (sid, prev) => {
+    if (sid !== prev) applyDeepLink(sid)
+  },
+)
 
 const mode = ref(0)
 const query = ref('')

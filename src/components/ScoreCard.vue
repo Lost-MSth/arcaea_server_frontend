@@ -7,8 +7,9 @@
     <div class="mid">
       <div class="nm">{{ score.song_name || score.song_id }}</div>
       <div class="sub">
-        <DiffChip :difficulty="score.difficulty" />
+        <DiffChip :difficulty="score.difficulty" :cc="score.chart_const" />
         <span class="sc hud">{{ score.score.toLocaleString('en-US') }}</span>
+        <span v-if="clearBadge" class="ct hud" :class="clearBadge.cls" :title="clearBadge.title">{{ clearBadge.text }}</span>
       </div>
       <div class="pfl hud">
         P {{ score.perfect_count }} ({{ score.shiny_perfect_count }}) · F {{ score.near_count }} · L
@@ -17,13 +18,8 @@
     </div>
     <div class="rt">
       <div class="lab">{{ t('score.rating') }}</div>
-      <div class="val hud gradient-text">{{ Number(score.rating).toFixed(2) }}</div>
-      <n-tooltip v-if="validTime" trigger="hover">
-        <template #trigger>
-          <div class="time hud">{{ fromNow }}</div>
-        </template>
-        {{ fullTime }}
-      </n-tooltip>
+      <div class="val hud gradient-text">{{ Number(score.rating).toFixed(3) }}</div>
+      <div v-if="validTime" v-tip="fullTime" class="time hud">{{ fromNow }}</div>
     </div>
   </div>
 </template>
@@ -31,8 +27,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NTooltip } from 'naive-ui'
 
+import { clear_type_name } from '@/config'
 import DiffChip from '@/components/DiffChip.vue'
 import SongJacket from '@/components/SongJacket.vue'
 import dayjs from '@/plugins/day'
@@ -43,6 +39,15 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+
+// Clear-type badge (0 TL / 1 NC / 2 FR / 3 PM / 4 EC / 5 HC). Only the ones
+// worth calling out get a badge: Pure Memory, Full Recall and Track Lost.
+const CLEAR_BADGES = { 3: { text: 'PM', cls: 'pm' }, 2: { text: 'FR', cls: 'fr' }, 0: { text: 'TL', cls: 'tl' } }
+const clearBadge = computed(() => {
+  const ct = props.score.best_clear_type ?? props.score.clear_type
+  const b = CLEAR_BADGES[ct]
+  return b ? { ...b, title: clear_type_name[ct] } : null
+})
 
 // Guard against 0 / near-epoch timestamps (test data) that render as "57 years ago".
 const validTime = computed(() => props.score.time_played && props.score.time_played > 1e9)
@@ -91,10 +96,30 @@ const fullTime = computed(() => dayjs(props.score.time_played * 1000).format('YY
   align-items: center;
   gap: 8px;
   margin-top: 5px;
+  flex-wrap: wrap;
 }
 .sc {
   font-weight: 700;
   font-size: 15px;
+}
+.ct {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+.ct.pm {
+  color: #b8860b;
+  background: color-mix(in srgb, #f5c451 22%, transparent);
+}
+.ct.fr {
+  color: #7c5cff;
+  background: color-mix(in srgb, #a982ff 20%, transparent);
+}
+.ct.tl {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 .pfl {
   font-size: 10.5px;

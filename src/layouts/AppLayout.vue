@@ -28,30 +28,6 @@
           </button>
         </n-dropdown>
 
-        <n-popover trigger="click" placement="bottom">
-          <template #trigger>
-            <button class="icon-btn" :aria-label="t('common.accent')">
-              <AppIcon name="palette" :size="19" />
-            </button>
-          </template>
-          <div style="display: grid; grid-template-columns: repeat(4, 30px); gap: 10px; padding: 4px">
-            <button
-              v-for="p in ACCENT_PRESETS"
-              :key="p.key"
-              :aria-label="p.key"
-              :style="{
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                cursor: 'pointer',
-                background: p.color,
-                border: app.accent === p.color ? '2px solid var(--text)' : '2px solid transparent',
-              }"
-              @click="app.setAccent(p.color)"
-            />
-          </div>
-        </n-popover>
-
         <button class="icon-btn" :aria-label="t('common.theme')" @click="app.toggleTheme()">
           <AppIcon :name="app.isDark ? 'sun' : 'moon'" :size="19" />
         </button>
@@ -84,12 +60,11 @@
 import { computed, h, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { NDrawer, NDrawerContent, NDropdown, NPopover } from 'naive-ui'
+import { NDrawer, NDrawerContent, NDropdown } from 'naive-ui'
 
 import NavRail from '@/components/NavRail.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import CharIcon from '@/components/CharIcon.vue'
-import { ACCENT_PRESETS } from '@/plugins/theme'
 import { appStore } from '@/store/app'
 import { userStore } from '@/store/user'
 
@@ -110,13 +85,6 @@ const langOptions = [
   { label: '中文', key: 'zh-CN' },
   { label: 'English', key: 'en-US' },
 ]
-
-const userOptions = computed(() => [
-  { label: user.name || '—', key: 'name', disabled: true },
-  { type: 'divider', key: 'd' },
-  { label: t('login.logout'), key: 'logout', icon: () => h(AppIcon, { name: 'logout', size: 16 }) },
-])
-
 const changeLang = (val) => {
   locale.value = val
   try {
@@ -126,7 +94,19 @@ const changeLang = (val) => {
   }
 }
 
+const userOptions = computed(() => [
+  { label: user.name || '—', key: 'name', disabled: true },
+  { type: 'divider', key: 'd' },
+  // The API-token session has no player behind it — no profile to open.
+  ...(user.user_id ? [{ label: t('route.profile'), key: 'profile', icon: () => h(AppIcon, { name: 'person', size: 16 }) }] : []),
+  { label: t('route.settings'), key: 'settings', icon: () => h(AppIcon, { name: 'options', size: 16 }) },
+  { type: 'divider', key: 'd2' },
+  { label: t('login.logout'), key: 'logout', icon: () => h(AppIcon, { name: 'logout', size: 16 }) },
+])
+
 const onUserSelect = (key) => {
+  if (key === 'profile') router.push('/user/profile')
+  if (key === 'settings') router.push('/settings')
   if (key === 'logout') {
     user.logout()
     router.push('/login').then(() => router.go(0))

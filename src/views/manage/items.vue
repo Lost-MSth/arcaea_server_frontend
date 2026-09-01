@@ -4,6 +4,7 @@
     <CrudTable
       :columns="columns"
       :load-fn="loadFn"
+      cache-prefix="/items"
       :row-key="(r) => r.type + '/' + r.id"
       :search-keys="['id', 'type']"
       :can-write="canWrite"
@@ -63,8 +64,8 @@ const loadFn = async (force) => {
 const onCreate = (model) =>
   service.post('/items', { item_id: model.item_id, type: model.type, is_available: model.is_available })
 
-const onEdit = (model, row) =>
-  service.put('/items/' + row.type + '/' + row.id, { is_available: model.is_available })
+const onEdit = (model, row, changed) =>
+  service.put('/items/' + row.type + '/' + row.id, { is_available: !!changed.is_available })
 
 const onDelete = (rows) => Promise.all(rows.map((r) => service.delete('/items/' + r.type + '/' + r.id)))
 </script>

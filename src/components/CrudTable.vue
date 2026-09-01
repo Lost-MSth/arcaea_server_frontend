@@ -11,6 +11,7 @@
       >
         <template #clear-icon><AppIcon name="close" :size="14" /></template>
         <template #prefix><AppIcon name="search" :size="16" /></template>
+        <template #suffix><kbd v-if="!filter" class="kbd hud">/</kbd></template>
       </n-input>
       <n-tag v-if="checkedKeys.length" type="primary" round closable @close="checkedKeys = []">
         {{ t('common.selected_n', { n: checkedKeys.length }) }}
@@ -98,6 +99,8 @@
               v-model:value="model[f.key]"
               :options="f.options"
               :disabled="modalMode === 'edit' && f.primary"
+              filterable
+              clearable
             />
             <n-input
               v-else
@@ -140,6 +143,7 @@ import {
 } from 'naive-ui'
 
 import AppIcon from '@/components/AppIcon.vue'
+import service from '@/plugins/axios'
 
 const props = defineProps({
   columns: { type: Array, default: () => [] },
@@ -156,6 +160,9 @@ const props = defineProps({
   // Per-row buttons, e.g. [{ key, label, onClick(row) }]. Rendered in a
   // trailing "Actions" column — used for nested-item editors.
   extraActions: { type: Array, default: () => [] },
+  // Request-cache prefix this table's list lives under (e.g. '/songs').
+  // Mutations update rows locally and invalidate it instead of refetching.
+  cachePrefix: { type: String, default: '' },
 })
 
 const { t } = useI18n()
@@ -340,20 +347,60 @@ const openEdit = () => {
   modalShow.value = true
 }
 
+// ---- local apply ----
+// Handlers may return the API response ({ code, data }) — the server echoes
+// the updated object for every PUT/POST — or a ready-made row object.
+const isApiRes = (r) => !!r && typeof r === 'object' && typeof r.code === 'number' && 'data' in r
+const rowFrom = (r) => {
+  if (isApiRes(r)) return r.data && typeof r.data === 'object' && !Array.isArray(r.data) ? r.data : null
+  return r && typeof r === 'object' ? r : null
+}
+const norm = (f, v) => {
+  if (f.type === 'number') return v === '' || v == null || Number.isNaN(Number(v)) ? null : Number(v)
+  if (f.type === 'switch') return !!v
+  if (f.type === 'datetime') return v ? Number(v) : null
+  return v == null ? '' : String(v)
+}
+// Only fields whose value actually differs from the row are submitted.
+const diffModel = () => {
+  const row = editingRow.value
+  const changed = {}
+  ;(props.editFields || []).forEach((f) => {
+    if (f.primary) return
+    if (norm(f, model.value[f.key]) !== norm(f, row[f.key])) changed[f.key] = model.value[f.key]
+  })
+  return changed
+}
+const afterMutation = () => {
+  checkedKeys.value = []
+  if (props.cachePrefix) service.invalidateCache(props.cachePrefix)
+}
+
 const save = () => {
   formRef.value?.validate(async (errors) => {
     if (errors) return
     saving.value = true
     try {
       if (modalMode.value === 'create') {
-        await props.onCreate(model.value)
+        const r = await props.onCreate(model.value)
+        const patch = rowFrom(r)
+        rows.value.unshift(isApiRes(r) ? { ...model.value, ...(patch || {}) } : patch || { ...model.value })
         message.success(t('manage.created'))
       } else {
-        await props.onEdit(model.value, editingRow.value)
+        const changed = diffModel()
+        if (!Object.keys(changed).length) {
+          message.info(t('manage.no_changes'))
+          modalShow.value = false
+          return
+        }
+        const r = await props.onEdit(model.value, editingRow.value, changed)
+        const merged = { ...changed, ...(rowFrom(r) || {}) }
+        delete merged.password
+        Object.assign(editingRow.value, merged)
         message.success(t('manage.updated'))
       }
       modalShow.value = false
-      await reload(true)
+      afterMutation()
     } catch (e) {
       /* interceptor already surfaced the error */
     } finally {
@@ -406,15 +453,24 @@ const confirmDelete = () => {
       try {
         await props.onDelete(selected)
         message.success(t('manage.deleted'))
-        await reload(true)
+        const gone = new Set(selected.map(props.rowKey))
+        rows.value = rows.value.filter((r) => !gone.has(props.rowKey(r)))
+        afterMutation()
       } catch (e) {
-        /* surfaced by interceptor */
+        // Partial failure possible — resync from the server.
+        await reload(true)
       }
     },
   })
 }
 
-defineExpose({ reload })
+// Rows created outside the modal (e.g. bulk generators) are inserted locally.
+const insertRows = (list) => {
+  if (Array.isArray(list) && list.length) rows.value.unshift(...list)
+  afterMutation()
+}
+
+defineExpose({ reload, insertRows })
 </script>
 
 <style scoped>
@@ -430,6 +486,15 @@ defineExpose({ reload })
 }
 .filter-input {
   max-width: 260px;
+}
+.kbd {
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--surface-2);
 }
 .toolbar-spacer {
   flex: 1;

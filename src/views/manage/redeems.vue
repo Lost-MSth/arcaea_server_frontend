@@ -13,6 +13,7 @@
       ref="tableRef"
       :columns="columns"
       :load-fn="loadFn"
+      cache-prefix="/redeems"
       :row-key="(r) => r.code"
       :search-keys="['code']"
       :can-write="canWrite"
@@ -131,7 +132,7 @@ const loadFn = async (force) => {
   return res.data
 }
 const onCreate = (model) => service.post('/redeems', { code: model.code, type: Number(model.type) })
-const onEdit = (model, row) => service.put('/redeems/' + row.code, { type: Number(model.type) })
+const onEdit = (model, row, changed) => service.put('/redeems/' + row.code, { type: Number(changed.type) })
 const onDelete = (rows) => Promise.all(rows.map((r) => service.delete('/redeems/' + r.code)))
 
 // ---- nested items ----
@@ -175,12 +176,14 @@ const runBulk = async () => {
   let ok = 0
   let fail = 0
   const okCodes = []
+  const okRows = []
   for (let i = 0; i < bulk.count; i++) {
     const code = prefix + randCode(bulk.length - prefix.length)
     try {
-      await service.post('/redeems', { code, type: Number(bulk.type) }, { silent: true })
+      const res = await service.post('/redeems', { code, type: Number(bulk.type) }, { silent: true })
       ok++
       okCodes.push(code)
+      if (res.data && typeof res.data === 'object') okRows.push(res.data)
     } catch (e) {
       fail++
     }
@@ -188,7 +191,7 @@ const runBulk = async () => {
   bulkRunning.value = false
   bulkShow.value = false
   message.success(t('redeem.result', { ok, fail }))
-  tableRef.value?.reload(true)
+  if (okRows.length) tableRef.value?.insertRows(okRows)
   if (okCodes.length) {
     genCodes.value = okCodes
     resultShow.value = true

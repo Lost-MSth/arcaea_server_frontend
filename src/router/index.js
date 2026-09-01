@@ -12,7 +12,9 @@ const routes = [
     path: '/',
     name: 'layout',
     component: () => import('@/layouts/AppLayout.vue'),
-    redirect: '/dashboard',
+    // Home depends on role: the dashboard is an admin view (needs `select`);
+    // players land on their profile.
+    redirect: () => homeRoute(),
     children: [
       {
         path: 'dashboard',
@@ -23,6 +25,8 @@ const routes = [
     ],
   },
 ]
+
+const homeRoute = () => ({ path: userStore().has_power('select') ? '/dashboard' : '/user/profile' })
 
 const router = createRouter({
   // Hash history keeps static hosting trivial: one index.html, no rewrite rules.
@@ -61,13 +65,14 @@ router.beforeEach(async (to) => {
     }
   })
 
-  if (to.name === 'login') return { name: 'dashboard' }
+  if (to.name === 'login') return homeRoute()
+  if (to.name === 'dashboard' && !user.has_power('select')) return homeRoute()
 
   // A deep-linked dynamic route isn't matched until generate_routes() ran, so
   // re-resolve it now; fall back to the dashboard if it truly doesn't exist.
   if (to.matched.length === 0) {
     const resolved = router.resolve(to.fullPath)
-    return resolved.matched.length ? resolved.fullPath : { name: 'dashboard' }
+    return resolved.matched.length ? resolved.fullPath : homeRoute()
   }
 
   return true

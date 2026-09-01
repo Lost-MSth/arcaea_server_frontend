@@ -1,32 +1,39 @@
 # Arcaea Server Frontend
 
+> 声明：本项目目前主要由 LLM 开发，暂无人类审核。
+>
+> Declaration: This project is currently mainly developed by LLM and has not been reviewed by humans yet.
+
 基于 **Vue 3 + Vite + Naive UI** 的 [Arcaea-server](https://github.com/Lost-MSth/Arcaea-server) 管理与玩家控制台（对接 `/api/v1` 管理 API）。
 
 A management & player console for the self-hosted Arcaea server, built with Vue 3, Vite and Naive UI. Dark-first "aurora" design, fully themeable, i18n (中文/English), permission-aware UI, and a single build that can be deployed three different ways.
 
 ## 特性 Features
 
-- 🎨 **极光风格设计**：深色优先、可切换浅色（主题开关可通过 `appStore.showThemeToggle` 关闭）；全站 CSS token 驱动
-- 🌐 **i18n**：中文 / English，随处可切
-- 🔐 **权限驱动**：菜单与路由按登录用户的 powers 动态生成；写操作按钮按权限逐个显隐
+- 🎨 **极光风格设计**：深色 / 浅色随时切换，7 组可选主题色；全站 CSS token 驱动，字体自托管
+- 🌐 **i18n**：中文 / English，右上角一键切换
+- 🔐 **权限驱动**：菜单与路由按登录用户的 powers 动态生成，写操作按钮逐个显隐；玩家登录直达个人页，管理员看仪表盘
+- 🎮 **玩家个人页**：Best 50 成绩（定数、PM / FR 标记）、PTT 四个分量（B50 / B30 / B10 / R10，权重来自服务端配置）、按游戏档位着色的 PTT 进度环、潜力值历史曲线（30 / 90 / 365 天）、最近游玩
 - 📄 **覆盖全部管理 API**：
   | 页面 | 接口 | 说明 |
   | --- | --- | --- |
-  | 仪表盘 | `/users` `/songs` `/multiplay/rooms` | 计数、潜力值排行榜 |
-  | 个人信息 | `/users/<id>/b30` `/r30` `/rating` | 潜力值徽章、Best 30、评分曲线 |
-  | 用户查询 | `/users` `/users/<id>/b30` | 按 ID / 名称 / 好友码查询 |
-  | 曲目查询 | `/songs` `/songs/<id>/<diff>/rank` | 模糊搜索 + 难度排行榜 |
+  | 仪表盘 | `/users` `/songs`（`count_only`）`/multiplay/rooms` `/system/constants` | 计数、潜力值排行榜、服务端版本 |
+  | 个人信息 | `/users/<id>/brief` `/best` `/r30` `/rating` | Best 50、PTT 分量、评分曲线 |
+  | 用户管理 | `/users` CRUD + `/best`（服务端分页） | 创建 / 编辑 / 封禁 / 解封、详情（Best 50 + 全部成绩） |
+  | 曲目查询 | `/songs` `/songs/<id>/<diff>/rank` | 模糊搜索 + 难度排行榜（高亮自己） |
   | 曲目管理 | `/songs` CRUD | 定数编辑 |
-  | 角色 | `/characters` + `/cores` | 数值 / 技能编辑、觉醒核心 |
+  | 角色 | `/characters` + `/cores` | 数值 / 技能（下拉）编辑、觉醒核心 |
   | 物品 | `/items` CRUD | |
   | 购买项 | `/purchases` + `/items` PATCH | 价格、折扣窗口、内含物品 |
   | 奖励 | `/presents` + `/items` PATCH | 过期时间选择器、内含物品 |
-  | 兑换码 | `/redeems` + `/items` PATCH | |
+  | 兑换码 | `/redeems` + `/items` PATCH | 批量生成 |
   | 联机 | `/multiplay/rooms` | 房间列表 |
   | 系统操作 | `/system/operations` | 维护任务（危险操作二次确认） |
-- 🧰 **通用 CRUD 表格**：前端筛选 / 多列排序 / 分页（每页条数可调）、跨页选中提示、字段化编辑弹窗（文本 / 数字 / 开关 / 下拉 / 日期时间）、嵌套物品编辑器（diff 后批量 PATCH）
-- ⚡ **性能**：Naive UI 按需引入，路由级代码分割（首屏 JS ≈ 160 KB gzip）；字体自托管（不依赖 Google Fonts，离线与中国大陆网络可用）；图表为自绘内联 SVG，零图表库
-- 🖼️ **图片可选**：角色头像与曲绘懒加载展示，文件缺失时就地降级为占位图（缩写 / 音符图标），失败地址本会话不重试。资源默认从后端 `/static/char/`、`/static/songs/` 拉取（目录名 = `song_id`，注意去掉原始资源的 `dl_` 前缀），也可在登录页「高级」里指定 CDN 等其它地址，填 `off` 完全禁用
+  | 缓存 / 设置 | — | 请求缓存查看与刷新（管理员）；外观、语言、图片等前端设置（所有人） |
+- 🧰 **通用 CRUD 表格**：前端筛选（`/` 聚焦）/ 多列排序 / 分页、跨页选中提示、字段化编辑弹窗（文本 / 数字 / 开关 / 下拉 / 日期时间）、嵌套物品编辑器；**编辑只提交改动的字段，增删改后就地更新、不重拉列表**
+- ⚡ **对服务端友好**：按资源分级的请求缓存（常量 24h、曲目 / 角色 1h、成绩 5min…，写操作自动失效相关缓存）、并发去重、失败不缓存；启动仅 6 个请求，页面往返零请求
+- 🖼️ **图片可选**：角色头像与曲绘懒加载，缺图就地降级为占位；资源默认取自后端 `/static/`（目录名 = `song_id`，去掉原始资源的 `dl_` 前缀），可在设置页指定 CDN 或关闭；`scripts/build_pages.py` 会把曲绘压到 208px、头像量化，Pages 部署包约 11 MB
+- 📦 **性能**：Naive UI 按需引入，路由级代码分割（首屏 JS ≈ 164 KB gzip）；图表为自绘内联 SVG，零图表库
 
 ## 开发 Development
 

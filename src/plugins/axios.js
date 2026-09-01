@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Base64 } from 'js-base64'
 
 import { resolveApiBase } from '@/config'
+import { cachedGet, clearAll as clearCache, invalidate as invalidateCache } from '@/plugins/cache'
 import i18n from '@/i18n'
 import { message } from '@/plugins/discrete'
 import { userStore } from '@/store/user'
@@ -31,33 +32,10 @@ service._get = (url, data, config = {}) =>
   })
 
 // ---- TTL cache for GETs -------------------------------------------------
-// Keeps repeat page visits from re-hitting the server: identical requests
-// within `ttl` share one response, and concurrent callers share one in-flight
-// promise. `force: true` (manual refresh / after mutations) bypasses and
-// replaces the entry. Failures are never cached.
-const _getCache = new Map()
-
-service.cachedGet = (url, data = null, { ttl = 60000, force = false, ...config } = {}) => {
-  const key = url + '|' + (data ? JSON.stringify(data) : '')
-  const hit = _getCache.get(key)
-  if (!force && hit && Date.now() - hit.time < ttl) {
-    return hit.promise
-  }
-  const promise = (data ? service._get(url, data, config) : service.get(url, config)).catch(
-    (e) => {
-      _getCache.delete(key)
-      throw e
-    },
-  )
-  _getCache.set(key, { time: Date.now(), promise })
-  return promise
-}
-
-service.invalidateCache = (prefix = '') => {
-  for (const k of _getCache.keys()) {
-    if (k.startsWith(prefix)) _getCache.delete(k)
-  }
-}
+// Policy, registry and persistence live in plugins/cache.js (the cache page
+// renders that registry). `force: true` bypasses and replaces the entry.
+service.cachedGet = (url, data = null, opts = {}) => cachedGet(service, url, data, opts)
+service.invalidateCache = invalidateCache
 
 function codeMessage(code) {
   const key = 'error.' + Math.abs(code)
@@ -95,7 +73,10 @@ service.interceptors.response.use(
       const status = error.response.status
       const res = error.response.data || {}
       // A 401 always clears the session, even for silent calls.
-      if (status === 401) userStore().$reset()
+      if (status === 401) {
+        userStore().$reset()
+        clearCache()
+      }
       if (!silent) {
         if (res.code === undefined || res.code === -1) {
           message.error(statusMessage(status))

@@ -20,19 +20,7 @@
         <div class="v hud" :style="{ fontSize: '20px', color: online ? 'var(--good)' : 'var(--text-muted)' }">
           {{ online ? t('dashboard.healthy') : '—' }}
         </div>
-      </div>
-    </div>
-
-    <div v-if="extraStats.length" class="mini-row">
-      <div
-        v-for="s in extraStats"
-        :key="s.key"
-        class="mini glass"
-        :class="{ link: !!s.to }"
-        @click="s.to && go(s.to)"
-      >
-        <span class="mk">{{ s.label }}</span>
-        <span class="mv hud">{{ fmt(s.value) }}</span>
+        <div v-if="serverVersion" class="sub hud">{{ serverVersion }}</div>
       </div>
     </div>
 
@@ -49,7 +37,7 @@
               <div class="lb-name">
                 {{ u.name }}<small class="hud">#{{ String(u.user_id).padStart(3, '0') }} · {{ u.user_code }}</small>
               </div>
-              <div class="lb-ptt hud">{{ Number(u.rating_ptt).toFixed(2) }}</div>
+              <div class="lb-ptt hud">{{ Number(u.rating_ptt).toFixed(3) }}</div>
             </div>
           </div>
           <div v-else class="empty hud">{{ t('common.no_data') }}</div>
@@ -74,13 +62,6 @@
       </div>
     </div>
 
-    <div v-else class="board glass welcome">
-      <AppIcon name="person" :size="22" />
-      <div>
-        <div class="w-title font-display">{{ user.name }}</div>
-        <RouterLink class="w-link" to="/user/profile">{{ t('route.profile') }} →</RouterLink>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -107,28 +88,20 @@ const go = (path) => {
 const greeting = computed(() => (user.name ? `${user.name} · ${user.role || ''}` : ''))
 
 const stats = reactive({ users: null, songs: null, rooms: null })
-const statData = ref(null)
+const serverVersion = ref('')
 const online = ref(false)
-
-// Secondary counters — only present when the server has /system/statistics,
-// so this row simply doesn't render against older servers.
-const extraStats = computed(() => {
-  const d = statData.value
-  if (!d) return []
-  return [
-    { key: 'scores', label: t('dashboard.scores'), value: d.best_score_count },
-    { key: 'characters', label: t('route.characters'), value: d.character_count, to: '/characters' },
-    { key: 'items', label: t('route.items'), value: d.item_count, to: '/items' },
-    { key: 'purchases', label: t('route.purchases'), value: d.purchase_count, to: '/purchases' },
-    { key: 'presents', label: t('route.presents'), value: d.present_count, to: '/presents' },
-    { key: 'redeems', label: t('route.redeems'), value: d.redeem_count, to: '/redeems' },
-  ]
-})
 const leaderboard = ref([])
 const recentUsers = ref([])
 const loadingBoard = ref(false)
 
 const fmt = (v) => (v === null || v === undefined ? '—' : Number(v).toLocaleString('en-US'))
+
+// `{count}` from count_only-aware servers, plain length otherwise.
+const countOf = (d) => {
+  if (d && typeof d.count === 'number') return d.count
+  if (Array.isArray(d)) return d.length
+  return null
+}
 
 const roomsCount = (data) => {
   if (Array.isArray(data)) return data.length
@@ -143,31 +116,23 @@ onMounted(async () => {
   }
   loadingBoard.value = true
   // Cached (60s TTL) — revisiting the dashboard doesn't re-hit the server.
-  // Counts prefer /system/statistics (a few server-side COUNT(*));
-  // servers without it fall back to pulling the full lists.
-  const [st, rooms, board, recent] = await Promise.allSettled([
-    service.cachedGet('/system/statistics', null, { silent: true }),
+  // Counts use `count_only` (server-side COUNT(*)); older servers ignore the
+  // flag and return the full list, which countOf() handles too.
+  const [users, songs, rooms, board, recent, consts] = await Promise.allSettled([
+    service.cachedGet('/users', { count_only: true }, { silent: true }),
+    service.cachedGet('/songs', { count_only: true }, { silent: true }),
     service.cachedGet('/multiplay/rooms', null, { silent: true }),
     service.cachedGet('/users', { sort: [{ column: 'rating_ptt', order: 'DESC' }], limit: 6 }, { silent: true }),
     service.cachedGet('/users', { sort: [{ column: 'join_date', order: 'DESC' }], limit: 5 }, { silent: true }),
+    service.cachedGet('/system/constants', null, { silent: true }),
   ])
-  if (st.status === 'fulfilled') {
-    statData.value = st.value.data
-    stats.users = st.value.data.user_count
-    stats.songs = st.value.data.song_count
-  } else {
-    const [users, songs] = await Promise.allSettled([
-      service.cachedGet('/users', null, { silent: true }),
-      service.cachedGet('/songs', null, { silent: true }),
-    ])
-    if (users.status === 'fulfilled') stats.users = users.value.data.length
-    if (songs.status === 'fulfilled') stats.songs = songs.value.data.length
-  }
+  if (users.status === 'fulfilled') stats.users = countOf(users.value.data)
+  if (songs.status === 'fulfilled') stats.songs = countOf(songs.value.data)
   if (rooms.status === 'fulfilled') stats.rooms = roomsCount(rooms.value.data)
   if (board.status === 'fulfilled') leaderboard.value = board.value.data
   if (recent.status === 'fulfilled') recentUsers.value = recent.value.data
-  online.value =
-    [st, rooms, board, recent].some((r) => r.status === 'fulfilled') || stats.users != null
+  if (consts.status === 'fulfilled') serverVersion.value = consts.value.data.server_version || ''
+  online.value = [users, songs, rooms, board, recent, consts].some((r) => r.status === 'fulfilled')
   loadingBoard.value = false
 })
 </script>
@@ -207,34 +172,10 @@ onMounted(async () => {
   font-size: 30px;
   margin-top: 8px;
 }
-.mini-row {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 14px;
-  margin-bottom: 16px;
-}
-.mini {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 14px;
-}
-.mini.link {
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-.mini.link:hover {
-  border-color: var(--accent);
-}
-.mk {
-  font-size: 12px;
+.stat .sub {
+  font-size: 11px;
   color: var(--text-muted);
-  white-space: nowrap;
-}
-.mv {
-  font-weight: 700;
-  font-size: 16px;
+  margin-top: 4px;
 }
 .two-col {
   display: grid;
@@ -309,28 +250,8 @@ onMounted(async () => {
   text-align: center;
   color: var(--text-muted);
 }
-.welcome {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.welcome :deep(.n-icon) {
-  color: var(--accent);
-}
-.w-title {
-  font-weight: 700;
-  font-size: 18px;
-}
-.w-link {
-  color: var(--accent);
-  font-size: 13px;
-  text-decoration: none;
-}
 @media (max-width: 720px) {
   .stat-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .mini-row {
     grid-template-columns: repeat(2, 1fr);
   }
   .two-col {

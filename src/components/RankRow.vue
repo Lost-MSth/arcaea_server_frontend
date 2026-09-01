@@ -1,5 +1,5 @@
 <template>
-  <div class="rank-row" :class="{ top: data.rank <= 3 }">
+  <div class="rank-row" :class="{ top: data.rank <= 3, me: isMe }">
     <div class="no hud">{{ data.rank }}</div>
     <div class="who">
       {{ data.name }}
@@ -10,22 +10,16 @@
       <div class="hud clear">{{ clear_type_name[data.clear_type] }}</div>
       <div class="counts hud">P{{ data.perfect_count }}/F{{ data.near_count }}/L{{ data.miss_count }}</div>
     </div>
-    <n-tooltip v-if="validTime" trigger="hover">
-      <template #trigger>
-        <div class="when hud">{{ fromNow }}</div>
-      </template>
-      {{ fullTime }}
-    </n-tooltip>
-    <div v-else class="when hud">—</div>
+    <div v-tip="validTime ? fullTime : ''" class="when hud">{{ validTime ? fromNow : '—' }}</div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { NTooltip } from 'naive-ui'
 
 import { clear_type_name } from '@/config'
 import dayjs from '@/plugins/day'
+import { userStore } from '@/store/user'
 
 const props = defineProps({
   data: { type: Object, required: true },
@@ -34,6 +28,10 @@ const props = defineProps({
 const validTime = computed(() => props.data.time_played && props.data.time_played > 1e9)
 const fromNow = computed(() => dayjs(props.data.time_played * 1000).fromNow())
 const fullTime = computed(() => dayjs(props.data.time_played * 1000).format('YYYY-MM-DD HH:mm:ss'))
+
+// The signed-in player's own entry stands out in the leaderboard.
+const user = userStore()
+const isMe = computed(() => Number(props.data.user_id) === Number(user.user_id))
 </script>
 
 <style scoped>
@@ -98,5 +96,12 @@ const fullTime = computed(() => dayjs(props.data.time_played * 1000).format('YYY
   .when {
     display: none;
   }
+}
+.rank-row.me {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.rank-row.me .who {
+  color: var(--accent);
 }
 </style>
